@@ -1,0 +1,19 @@
+{
+  "title": "Mono Color · 单色与双色编辑海报",
+  "description": "用印刷网点、双色油墨、强烈版式和留白，生成具有编辑设计感的原创海报。封面直接链接原作者的斑马作品。",
+  "category": "平面设计 / 海报",
+  "tags": [
+    "双色印刷",
+    "Risograph",
+    "网点",
+    "海报",
+    "编辑设计"
+  ],
+  "model": "ChatGPT",
+  "updated_at": "2026-11-12",
+  "cover": "https://raw.githubusercontent.com/yanliudesign/mono-color-skill/main/examples/example-zebra.png",
+  "images": [
+    "https://raw.githubusercontent.com/yanliudesign/mono-color-skill/main/examples/example-zebra.png"
+  ],
+  "related_skills": []
+}
