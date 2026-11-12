@@ -1,0 +1,7 @@
+interface:
+  display_name: "/xxd-panel-115"
+  short_description: "粉彩章印拼贴志：把照片画成复古纸上一枚粉笔蜡笔线条的小章印，留白很多"
+  default_prompt: "Use $xxd-panel-115 to turn my photo into Pastel Stamp Collage Journal artwork."
+
+policy:
+  allow_implicit_invocation: true
