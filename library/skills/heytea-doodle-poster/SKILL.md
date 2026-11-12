@@ -4,7 +4,9 @@
 
 **完整 SKILL.md**：https://github.com/yinxiaowai/heytea-doodle-poster/blob/main/skills/heytea-doodle-poster/SKILL.md
 
-**简介**：WaytoAGI 认证讲师 & 视频学社主理人 & AI工具测评专家
+**简介**：上传一张照片，保留真实主体与自然光影，在白底留白中加入 4–5 位互动的黑色线稿小人、2–5 字短文案和手绘箭头，生成 3:4 竖版涂鸦海报。
+
+**特点**：主体保持照片质感，周围加入黑色手绘小人和与场景对应的简短文案；附 6 组上游真实效果图，可对照原作者仓库中的生成设置与提示词。
 
 ## 安装
 
