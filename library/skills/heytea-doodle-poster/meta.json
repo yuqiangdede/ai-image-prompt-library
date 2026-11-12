@@ -1,16 +1,25 @@
 {
   "title": "HEYTEA Doodle Poster｜喜茶风涂鸦海报",
-  "description": "WaytoAGI 认证讲师 & 视频学社主理人 & AI工具测评专家",
+  "description": "上传一张照片，保留真实主体与自然光影，在白底留白中加入 4–5 位互动的黑色线稿小人、2–5 字短文案和手绘箭头，生成 3:4 竖版涂鸦海报。",
   "category": "平面设计 / 海报",
   "tags": [
-    "海报",
-    "平面设计"
+    "涂鸦海报",
+    "照片编辑",
+    "手绘小人",
+    "极简留白",
+    "互动叙事",
+    "3:4竖版"
   ],
   "model": "ChatGPT",
   "updated_at": "2026-11-12",
-  "cover": "https://raw.githubusercontent.com/yinxiaowai/heytea-doodle-poster/main/assets/images/wechat-qr.png",
+  "cover": "https://raw.githubusercontent.com/yinxiaowai/heytea-doodle-poster/main/assets/examples/croissant-result.jpg",
   "images": [
-    "https://raw.githubusercontent.com/yinxiaowai/heytea-doodle-poster/main/assets/images/wechat-qr.png"
+    "https://raw.githubusercontent.com/yinxiaowai/heytea-doodle-poster/main/assets/examples/croissant-result.jpg",
+    "https://raw.githubusercontent.com/yinxiaowai/heytea-doodle-poster/main/assets/examples/sneaker-result.jpg",
+    "https://raw.githubusercontent.com/yinxiaowai/heytea-doodle-poster/main/assets/examples/plant-result.jpg",
+    "https://raw.githubusercontent.com/yinxiaowai/heytea-doodle-poster/main/assets/examples/earbuds-result.jpg",
+    "https://raw.githubusercontent.com/yinxiaowai/heytea-doodle-poster/main/assets/examples/pancakes-result.jpg",
+    "https://raw.githubusercontent.com/yinxiaowai/heytea-doodle-poster/main/assets/examples/portrait-result.jpg"
   ],
   "related_skills": [],
   "external_only": true,
