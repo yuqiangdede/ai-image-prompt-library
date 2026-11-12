@@ -41,6 +41,11 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Validate import script and frontend
+        run: |
+          python -m py_compile scripts/import_skill.py
+          python -c "from scripts.import_skill import parse_url, select_entry; assert parse_url('https://github.com/op7418/guizang-yingzao-skill')[0] == 'op7418'; assert select_entry({'yingzao/SKILL.md'}, 'main', []) == 'yingzao/SKILL.md'"
+          node --check site/app.js
       - name: Import public Skill from owner issue
         if: github.event_name == 'issues'
         env:
