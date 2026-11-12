@@ -1,0 +1,18 @@
+{
+  "title": "HEYTEA Doodle Poster｜喜茶风涂鸦海报",
+  "description": "WaytoAGI 认证讲师 & 视频学社主理人 & AI工具测评专家",
+  "category": "平面设计 / 海报",
+  "tags": [
+    "海报",
+    "平面设计"
+  ],
+  "model": "ChatGPT",
+  "updated_at": "2026-11-12",
+  "cover": "https://raw.githubusercontent.com/yinxiaowai/heytea-doodle-poster/main/assets/images/wechat-qr.png",
+  "images": [
+    "https://raw.githubusercontent.com/yinxiaowai/heytea-doodle-poster/main/assets/images/wechat-qr.png"
+  ],
+  "related_skills": [],
+  "external_only": true,
+  "install_command": "npx skills add https://github.com/yinxiaowai/heytea-doodle-poster --skill heytea-doodle-poster"
+}
