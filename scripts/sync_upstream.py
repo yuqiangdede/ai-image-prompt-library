@@ -55,6 +55,24 @@ def sync(folder):
         raise ValueError("Only trusted github.com repository URLs may be synced")
     if not re.fullmatch(r"[A-Za-z0-9._/-]+", branch):
         raise ValueError("Invalid Git branch")
+    mode = conf.get("sync_mode", "allowlisted-mit-text")
+    if mode == "link-only":
+        # Track the latest upstream commit without copying unlicensed source files.
+        output = git("ls-remote", "--heads", url + ".git", branch)
+        matches = [line.split()[0] for line in output.splitlines() if line.strip()]
+        if len(matches) != 1 or not re.fullmatch(r"[0-9a-f]{40}", matches[0]):
+            raise ValueError(f"{folder.name}: cannot resolve upstream branch")
+        sha = matches[0]
+        if sha == conf.get("sha"):
+            print(f"{folder.name}: external source unchanged ({sha[:12]})")
+            return False
+        conf["sha"] = sha
+        conf["last_synced"] = date.today().isoformat()
+        path.write_text(json.dumps(conf, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        print(f"{folder.name}: upstream link updated ({sha[:12]}); no source files mirrored")
+        return True
+    if mode != "allowlisted-mit-text":
+        raise ValueError(f"{folder.name}: unsupported sync mode {mode}")
     with tempfile.TemporaryDirectory() as tmp:
         upstream = Path(tmp) / "upstream"
         subprocess.run([

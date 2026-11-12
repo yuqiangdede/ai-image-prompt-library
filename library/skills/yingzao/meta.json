@@ -1,0 +1,22 @@
+{
+  "title": "Yingzao · 营造｜中国建筑与在地文化编辑海报",
+  "description": "将古建筑、历史街巷、地方器物与食物照片转化为具有中文展示字、材质层次和图文互动的编辑海报。关联原作者 Skill，复制命令即可安装到支持 Skills 的 Agent。",
+  "category": "平面设计 / 海报",
+  "tags": [
+    "中国建筑",
+    "在地文化",
+    "编辑海报",
+    "中文字体",
+    "图文互动",
+    "视觉叙事"
+  ],
+  "model": "ChatGPT",
+  "updated_at": "2026-11-12",
+  "cover": "https://raw.githubusercontent.com/op7418/guizang-yingzao-skill/main/yingzao/assets/readme-hero.webp",
+  "images": [
+    "https://raw.githubusercontent.com/op7418/guizang-yingzao-skill/main/yingzao/assets/readme-hero.webp"
+  ],
+  "related_skills": [],
+  "external_only": true,
+  "install_command": "npx skills add https://github.com/op7418/guizang-yingzao-skill --skill yingzao"
+}

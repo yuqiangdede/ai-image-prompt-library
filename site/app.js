@@ -108,14 +108,20 @@
       '<button type="button" data-related="' + escapeHtml(x.id) + '">关联' +
       (x.kind === "skill" ? " Skill" : " Prompt") + "：" + escapeHtml(x.title) + " ↗</button>"
     ).join("");
-    $("content-heading").textContent = item.kind === "skill" ? "SKILL.md 完整文本" : "完整 Prompt";
+    const externalSkill = item.kind === "skill" && item.external_only === true;
+    $("content-heading").textContent = externalSkill ? "使用说明（完整 Skill 位于上游仓库）" : item.kind === "skill" ? "SKILL.md 完整文本" : "完整 Prompt";
     $("detail-content").textContent = "正在读取内容…";
-    $("copy-primary").textContent = item.kind === "skill" ? "复制给 ChatGPT 的 Skill 指令" : "复制完整 Prompt";
+    $("copy-primary").textContent = externalSkill ? "复制安装命令" : item.kind === "skill" ? "复制给 ChatGPT 的 Skill 指令" : "复制完整 Prompt";
+    $("copy-text").textContent = externalSkill ? "复制使用说明" : "仅复制原文";
+    $("download-file").hidden = externalSkill;
     $("download-file").textContent = item.kind === "skill" ? "下载 Skill ZIP" : "下载 Prompt";
-    $("detail-note").textContent = item.kind === "skill"
+    $("detail-note").textContent = externalSkill
+      ? "此条目只收藏作品图、项目入口与安装命令；未镜像上游 Skill 文件。请在支持 Skills 的 Agent 中运行安装命令，ChatGPT 网页对话中粘贴命令并不会自动安装。"
+      : item.kind === "skill"
       ? "ZIP 保留 Skill 配套文本、设计配置与脚本；上游有版权限制的参考图片不在 ZIP 内。复制文本不会自动安装 Skill。"
       : "复制后可以直接粘贴到 ChatGPT 图片生成对话。";
-    $("open-source").href = state.catalog.repository_url + "/blob/main/" + item.content_path.split("/").map(encodeURIComponent).join("/");
+    $("open-source").href = externalSkill ? item.source_url : state.catalog.repository_url + "/blob/main/" + item.content_path.split("/").map(encodeURIComponent).join("/");
+    $("open-source").textContent = externalSkill ? "到原项目查看完整 Skill ↗" : "在 GitHub 中打开 ↗";
     $("detail-modal").hidden = false;
     document.body.style.overflow = "hidden";
     if (updateQuery) replaceItemQuery(id);
@@ -212,6 +218,7 @@
     $("detail-modal").addEventListener("click", event => { if (event.target.dataset.dismiss) closeItem(); });
     $("copy-text").addEventListener("click", () => copyText(state.text));
     $("copy-primary").addEventListener("click", () => {
+      if (state.selected?.external_only) return copyText(state.selected.install_command || state.selected.source_url);
       if (state.selected?.kind !== "skill") return copyText(state.text);
       copyText("请把以下 SKILL.md 当作这次生图任务的指令使用。需要额外的文件或设计配置时请明确提出，不能假装已经读取缺失附件。上游原始 Skill：" +
         (state.selected?.source_url || "") + "\n\n" + state.text);

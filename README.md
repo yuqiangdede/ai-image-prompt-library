@@ -58,3 +58,23 @@ python -m http.server 8000 --directory dist
 - 如果账户/仓库的 GitHub Actions 工作流写入权限被关闭，需要在 Settings → Actions → General 允许写入。
 
 项目使用原生 HTML/CSS/JS 和 Python 标准库。
+## 手工添加 Skill（不用命令行）
+
+以“营造 Yingzao”为例，所有操作都可在 GitHub 网页完成：
+
+1. 打开仓库 `library/skills/`，选择 **Add file → Create new file**。先创建 `<slug>/meta.json`，提交时选择 `main`。GitHub 不能上传空目录，新建路径时用斜杠分隔。
+2. 同目录创建 `SKILL.md`。**只有得到原作者许可且许可允许再分发时**，才复制完整 Skill 与配套文件；否则仅写原创介绍与原项目链接，并在 `meta.json` 设置 `"external_only": true`。
+3. 有上游来源时，再创建 `upstream.json`。明确许可的 MIT 项目可使用已支持的 `allowlisted-mit-text`；许可不明确的项目用 `link-only`，每天只核对上游 Commit，不复制文件。
+4. 封面可放在 `library/skills/<slug>/images/`：进入对应目录，点击 **Add file → Upload files** 上传图片，然后将 `meta.json` 中的 `cover` 和 `images` 设为 `images/cover.jpg` 等路径。也可使用原项目允许公开引用的 HTTPS GitHub 图片 URL。
+5. 检查 Actions → **Deploy Prompt & Skill Gallery** 是否执行成功，然后刷新 [GitHub Pages 图库](https://yuqiangdede.github.io/ai-image-prompt-library/)。
+
+`external_only` Skill 可填写 `install_command`，详情页会显示“复制安装命令”，不会提供内容不完整的 ZIP。不要误以为在 ChatGPT 网页中粘贴安装命令就完成 Skill 安装；应在支持 Skills 的 Agent/终端中运行。
+
+### 营造 Yingzao 示例
+
+完整文件目录：
+- `library/skills/yingzao/meta.json`：名称、标签、封面、安装命令
+- `library/skills/yingzao/SKILL.md`：原创索引和使用说明
+- `library/skills/yingzao/upstream.json`：上游链接与每日 Commit 跟踪
+
+该上游暂未发现明确的根目录 `LICENSE`，因此采用 `link-only`，而不是复制上游的参考图、Python 脚本或完整指令。

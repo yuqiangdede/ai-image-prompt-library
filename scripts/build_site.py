@@ -36,6 +36,7 @@ def make_item(folder, kind):
     for field in ("title", "description", "category"):
         if not isinstance(meta.get(field), str) or not meta[field].strip():
             raise ValueError(f"{folder}: missing field {field}")
+    external_only = kind == "skill" and meta.get("external_only", False) is True
     body = folder / ("SKILL.md" if kind == "skill" else "prompt.md")
     if not body.is_file():
         raise ValueError(f"Missing {body}")
@@ -53,6 +54,8 @@ def make_item(folder, kind):
         "source_url": upstream.get("url", meta.get("source_url", "")),
         "source_sha": upstream.get("sha", ""),
         "source_branch": upstream.get("branch", ""),
+        "external_only": external_only,
+        "install_command": meta.get("install_command", ""),
     }
 
 def build():
@@ -69,7 +72,7 @@ def build():
             continue
         for folder in sorted(x for x in base.iterdir() if x.is_dir() and (x / "meta.json").exists()):
             item = make_item(folder, kind)
-            if kind == "skill":
+            if kind == "skill" and not item["external_only"]:
                 zip_file = DIST / "downloads" / "skills" / (folder.name + ".zip")
                 with zipfile.ZipFile(zip_file, "w", zipfile.ZIP_DEFLATED) as z:
                     for path in sorted(folder.rglob("*")):
