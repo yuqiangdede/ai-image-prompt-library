@@ -1,0 +1,89 @@
+name: 添加提示词
+description: 填写提示词和封面，提交后由 GitHub Actions 自动收录并发布。
+title: "[添加提示词] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        从图库右上角的「添加提示词」进入时，内容已经自动填好，只需核对并补上封面。
+        封面为必填：可以填写 GitHub 图片地址，也可以直接在下面的「上传封面图」中选择一张。
+        只有仓库所有者提交的 Issue 会自动处理；完成后会自动回复并关闭。
+  - type: input
+    id: prompt_title
+    attributes:
+      label: 标题（显示名称）
+      description: 显示在图库卡片和详情页的名称，建议 6–30 字。
+      placeholder: 科普百科图｜模块化知识信息图
+    validations:
+      required: true
+  - type: input
+    id: prompt_description
+    attributes:
+      label: 简介（卡片说明）
+      description: 一句话说明能生成什么、适合什么场景。
+      placeholder: 输入任意主题，生成博物图鉴风格的竖版科普信息图。
+    validations:
+      required: true
+  - type: input
+    id: prompt_category
+    attributes:
+      label: 分类（主题）
+      description: 会出现在「全部主题」筛选里；可以复用已有分类，也可以新建一个。
+      placeholder: 科普图鉴
+    validations:
+      required: true
+  - type: input
+    id: prompt_tags
+    attributes:
+      label: 标签（用逗号分隔）
+      description: 最多 8 个，例如「知识信息图, 模块化排版」。
+      placeholder: 知识信息图, 模块化排版
+    validations:
+      required: false
+  - type: input
+    id: prompt_model
+    attributes:
+      label: 适用模型
+      description: 留空时使用 ChatGPT。
+      placeholder: ChatGPT
+    validations:
+      required: false
+  - type: textarea
+    id: prompt_body
+    attributes:
+      label: 提示词正文（原样写入 prompt.md）
+      description: 复制按钮复制的就是这段内容。正文可以包含 Markdown，但请避免单独一行正好是表单字段名。
+      placeholder: 请把下面这段提示词发送给图片生成模型……
+    validations:
+      required: true
+  - type: input
+    id: cover_url
+    attributes:
+      label: 封面图地址（GitHub 图片链接）
+      description: raw.githubusercontent.com 链接，或 github.com 的 raw/blob 链接。没有地址时留空，改用下面的上传。
+      placeholder: "https://raw.githubusercontent.com/..."
+    validations:
+      required: false
+  - type: upload
+    id: cover_image
+    attributes:
+      label: 上传封面图（没有链接时使用）
+      description: 支持 PNG、JPG、WebP、GIF，单张不超过 8 MB。上传文件会复制到公开仓库，请确认有权公开。
+    validations:
+      required: false
+      accept: ".png,.jpg,.jpeg,.webp,.gif"
+  - type: input
+    id: prompt_slug
+    attributes:
+      label: 目录标识（slug，可留空自动生成）
+      description: 小写字母、数字和连字符，例如 science-encyclopedia-infographic。留空时按日期和内容自动生成。
+      placeholder: science-encyclopedia-infographic
+    validations:
+      required: false
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: 确认
+      options:
+        - label: 我确认这段提示词可以公开，封面图有权在本仓库展示
+          required: true

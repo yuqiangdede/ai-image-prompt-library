@@ -31,6 +31,7 @@ jobs:
       github.event_name != 'issues' ||
       (github.event.issue.user.login == github.repository_owner &&
         (startsWith(github.event.issue.title, '[导入 Skill]') ||
+         startsWith(github.event.issue.title, '[添加提示词]') ||
          startsWith(github.event.issue.title, '[修改图片]') ||
          startsWith(github.event.issue.title, '[删除 Skill]')))
     runs-on: ubuntu-latest
@@ -48,7 +49,7 @@ jobs:
           python-version: '3.12'
       - name: Validate scripts and frontend
         run: |
-          python -m py_compile scripts/import_skill.py scripts/manage_skill.py
+          python -m py_compile scripts/add_prompt.py scripts/import_skill.py scripts/manage_skill.py
           python -c "from scripts.import_skill import parse_url, select_entry; assert parse_url('https://github.com/op7418/guizang-yingzao-skill')[0] == 'op7418'; assert select_entry({'yingzao/SKILL.md'}, 'main', []) == 'yingzao/SKILL.md'"
           python - <<'PY'
           from scripts.manage_skill import attachment_urls, image_extension, linked_image_url, parse_sections, section_value
@@ -58,6 +59,21 @@ jobs:
           assert linked_image_url("https://github.com/a/b/blob/main/x.png") == "https://raw.githubusercontent.com/a/b/main/x.png"
           assert attachment_urls("![x](https://github.com/user-attachments/assets/abc)") == ["https://github.com/user-attachments/assets/abc"]
           assert image_extension(b"\x89PNG\r\n\x1a\nrest") == ".png"
+          PY
+          python - <<'PY'
+          import pathlib
+          import re
+          from scripts.add_prompt import LABELS, normalize_prompt, normalize_tags, parse_issue_body
+          template = pathlib.Path(".github/ISSUE_TEMPLATE/add-prompt.yml").read_text(encoding="utf-8")
+          labels = re.findall(r"^ {6}label: (.+)$", template, re.M)
+          assert set(labels) == set(LABELS.values()), (labels, list(LABELS.values()))
+          body = "### 标题（显示名称）\n\n示例\n\n### 提示词正文（原样写入 prompt.md）\n\n第一行\n### 正文自己的标题\n第三行\n\n### 封面图地址（GitHub 图片链接）\n\nhttps://raw.githubusercontent.com/a/b/main/c.png\n"
+          sections = parse_issue_body(body)
+          assert sections["title"] == "示例"
+          assert sections["prompt"] == "第一行\n### 正文自己的标题\n第三行"
+          assert sections["cover_url"] == "https://raw.githubusercontent.com/a/b/main/c.png"
+          assert normalize_tags("海报, 平面设计，海报") == ["海报", "平面设计"]
+          assert normalize_prompt("a\r\nb") == "a\nb\n"
           PY
           node --check site/app.js
       - name: Import public Skill from owner issue
@@ -70,6 +86,16 @@ jobs:
           git add library/skills
           if ! git diff --cached --quiet; then
             git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "feat(skills): import from issue #${{ github.event.issue.number }}"
+            git push origin HEAD:main
+          fi
+      - name: Add prompt from owner issue
+        id: add_prompt
+        if: github.event_name == 'issues' && startsWith(github.event.issue.title, '[添加提示词]')
+        run: |
+          python scripts/add_prompt.py
+          git add library/prompts
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "feat(prompts): add from issue #${{ github.event.issue.number }}"
             git push origin HEAD:main
           fi
       - name: Apply image change or deletion from owner issue
@@ -103,7 +129,7 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
       - name: Comment on failed owner request
-        if: failure() && github.event_name == 'issues' && (steps.import_skill.outcome == 'failure' || steps.manage_skill.outcome == 'failure')
+        if: failure() && github.event_name == 'issues' && (steps.import_skill.outcome == 'failure' || steps.add_prompt.outcome == 'failure' || steps.manage_skill.outcome == 'failure')
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
@@ -111,13 +137,14 @@ jobs:
         run: |
           case "$ISSUE_TITLE" in
             "[导入 Skill]"*) HINT="请检查仓库是否公开、是否包含 SKILL.md；包含多个 Skill 时请提供具体文件链接。";;
+            "[添加提示词]"*) HINT="请检查标题、简介、分类、提示词正文和封面是否填写完整；封面需要 GitHub 图片地址或上传文件。修正后可重新从图库提交一次，详细原因见 Actions 日志。";;
             "[修改图片]"*) HINT="请检查 Skill 标识、图片地址和上传文件（PNG/JPG/WebP/GIF，单张不超过 8 MB），详细原因见 Actions 日志。";;
             "[删除 Skill]"*) HINT="请检查 Skill 标识是否正确，并确认已勾选删除确认。";;
             *) HINT="详细原因见 Actions 日志。";;
           esac
           gh issue comment "$ISSUE_NUMBER" --body "自动处理失败。$HINT"
       - name: Comment on failed deployment after owner request
-        if: failure() && github.event_name == 'issues' && (steps.import_skill.outcome == 'success' || steps.manage_skill.outcome == 'success') && steps.deployment.outcome != 'success'
+        if: failure() && github.event_name == 'issues' && (steps.import_skill.outcome == 'success' || steps.add_prompt.outcome == 'success' || steps.manage_skill.outcome == 'success') && steps.deployment.outcome != 'success'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
@@ -132,6 +159,7 @@ jobs:
         run: |
           case "$ISSUE_TITLE" in
             "[导入 Skill]"*) MESSAGE="Skill 已自动导入。";;
+            "[添加提示词]"*) MESSAGE="提示词已自动收录。";;
             "[修改图片]"*) MESSAGE="图片已更新，部署完成后刷新图库即可看到。";;
             "[删除 Skill]"*) MESSAGE="Skill 已从图库删除。";;
             *) MESSAGE="请求已处理。";;

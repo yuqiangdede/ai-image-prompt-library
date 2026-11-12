@@ -18,6 +18,7 @@ Pocket is the Markdown knowledge map for this project. Existing authoritative do
 | 改素材校验或站点生成 | [scripts/build_site.py](../../scripts/build_site.py) | 目标素材的 `meta.json` |
 | 上游同步，或改同步白名单 | [scripts/sync_upstream.py](../../scripts/sync_upstream.py) | 目标 Skill 的 [upstream.json](../../library/skills/mono-color/upstream.json) |
 | 自动导入 Skill | [scripts/import_skill.py](../../scripts/import_skill.py) | [add-skill.yml](../../.github/ISSUE_TEMPLATE/add-skill.yml) |
+| 从网页添加提示词 | [add-prompt.yml](../../.github/ISSUE_TEMPLATE/add-prompt.yml)、[scripts/add_prompt.py](../../scripts/add_prompt.py) | [site/app.js](../../site/app.js) |
 | 修改图片或删除已收录 Skill | [scripts/manage_skill.py](../../scripts/manage_skill.py)、[site/app.js](../../site/app.js) 管理面板 | [edit-skill.yml](../../.github/ISSUE_TEMPLATE/edit-skill.yml)、[delete-skill.yml](../../.github/ISSUE_TEMPLATE/delete-skill.yml) |
 | 排查 Bug 或历史变更 | 尚无事件/踩坑记录 | 按需补 `docs/pocket/pitfalls/` |
 | 澄清或固化需求 | 尚无正式需求文档 | 按需补 `docs/pocket/requirements/` |

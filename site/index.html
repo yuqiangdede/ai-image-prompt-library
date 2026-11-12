@@ -13,7 +13,7 @@
   <header class="topbar">
     <div class="topbar-inner">
       <a class="brand" href="./" aria-label="回到图库"><span class="brand-symbol">P<span>✳</span>S</span><span class="brand-text">PROMPT<br><small>LIBRARY</small></span></a>
-      <div class="top-right"><span class="status"><span class="status-dot"></span> GitHub 自动同步</span><a id="repository-link" class="repo-link" href="https://github.com/yuqiangdede/ai-image-prompt-library" target="_blank" rel="noopener noreferrer">GitHub ↗</a><button id="open-skill-import" class="import-trigger" type="button" aria-haspopup="dialog" aria-controls="skill-import-modal" aria-label="通过 GitHub 地址添加 Skill"><span class="import-plus" aria-hidden="true">＋</span>添加 Skill</button></div>
+      <div class="top-right"><span class="status"><span class="status-dot"></span> GitHub 自动同步</span><a id="repository-link" class="repo-link" href="https://github.com/yuqiangdede/ai-image-prompt-library" target="_blank" rel="noopener noreferrer">GitHub ↗</a><div class="top-actions"><button id="open-skill-import" class="import-trigger" type="button" aria-haspopup="dialog" aria-controls="skill-import-modal" aria-label="通过 GitHub 地址添加 Skill"><span class="import-plus" aria-hidden="true">＋</span><span class="add-label-full">添加 Skill</span><span class="add-label-short">Skill</span></button><button id="open-prompt-import" class="import-trigger import-trigger-ghost" type="button" aria-haspopup="dialog" aria-controls="prompt-import-modal" aria-label="添加提示词"><span class="import-plus" aria-hidden="true">＋</span><span class="add-label-full">添加提示词</span><span class="add-label-short">提示词</span></button></div></div>
     </div>
   </header>
   <main class="shell">
@@ -133,6 +133,62 @@
           <button id="manage-delete-cancel" type="button">取消</button>
         </div>
       </div>
+    </section>
+  </div>
+  <div id="prompt-import-modal" class="modal import-modal prompt-import-modal" hidden>
+    <div class="modal-backdrop" data-prompt-dismiss="1"></div>
+    <section class="import-panel prompt-import-panel" role="dialog" aria-modal="true" aria-labelledby="prompt-import-title" aria-describedby="prompt-import-desc">
+      <div class="import-panel-top">
+        <div><p class="import-kicker">GITHUB ISSUE</p><h2 id="prompt-import-title">添加提示词</h2></div>
+        <button id="close-prompt-import" class="import-close" type="button" aria-label="关闭">✕</button>
+      </div>
+      <p id="prompt-import-desc" class="import-desc">填写提示词和封面信息，打开 GitHub 确认页后由 Actions 自动收录。封面为必填：可填写图片地址，或到 GitHub 页面直接上传。</p>
+      <form id="prompt-import-form" class="skill-import-form prompt-import-form" novalidate>
+        <div class="prompt-fields">
+          <div class="prompt-field">
+            <label for="prompt-title">标题</label>
+            <input id="prompt-title" type="text" maxlength="80" required autocomplete="off" placeholder="例如：科普百科图｜模块化知识信息图">
+          </div>
+          <div class="prompt-field">
+            <label for="prompt-category">分类</label>
+            <input id="prompt-category" type="text" maxlength="40" required list="prompt-category-options" autocomplete="off" placeholder="科普图鉴">
+            <datalist id="prompt-category-options"></datalist>
+          </div>
+          <div class="prompt-field prompt-field-wide">
+            <label for="prompt-description">简介</label>
+            <input id="prompt-description" type="text" maxlength="300" required autocomplete="off" placeholder="一句话说明能生成什么、适合什么场景。">
+          </div>
+          <div class="prompt-field">
+            <label for="prompt-tags">标签</label>
+            <input id="prompt-tags" type="text" autocomplete="off" placeholder="知识信息图, 模块化排版">
+          </div>
+          <div class="prompt-field">
+            <label for="prompt-model">适用模型</label>
+            <input id="prompt-model" type="text" maxlength="40" list="prompt-model-options" autocomplete="off" placeholder="ChatGPT">
+            <datalist id="prompt-model-options"></datalist>
+          </div>
+          <div class="prompt-field prompt-field-wide">
+            <div class="prompt-label-row"><label for="prompt-body">提示词正文</label><span id="prompt-body-count" class="prompt-count">0 字</span></div>
+            <textarea id="prompt-body" required rows="8" maxlength="20000" spellcheck="false" placeholder="粘贴完整提示词；会原样写入 prompt.md。"></textarea>
+            <p class="import-help">正文较长时，会自动复制到剪贴板，在 GitHub 页面「提示词正文」中粘贴一次即可。</p>
+          </div>
+          <div class="prompt-field">
+            <label for="prompt-cover">封面图地址（没有可留空，稍后上传）</label>
+            <input id="prompt-cover" type="url" inputmode="url" spellcheck="false" autocomplete="url" placeholder="https://raw.githubusercontent.com/…">
+          </div>
+          <div class="prompt-field">
+            <label for="prompt-slug">目录标识（可选）</label>
+            <input id="prompt-slug" type="text" maxlength="60" spellcheck="false" autocomplete="off" placeholder="留空自动生成">
+          </div>
+        </div>
+        <p id="prompt-import-error" class="import-error" role="alert" hidden></p>
+        <button type="submit" class="import-submit">打开 GitHub 确认页 <span aria-hidden="true">↗</span></button>
+      </form>
+      <div id="prompt-import-status" class="import-status" role="status" aria-live="polite" hidden>
+        <p id="prompt-import-status-text"></p>
+        <a id="prompt-import-fallback" href="#" target="_blank" rel="noopener noreferrer">没有自动打开？点此继续 ↗</a>
+      </div>
+      <p class="import-note">封面为必填：填写 GitHub 图片地址，或打开 Issue 后用「上传封面图」上传。只有仓库所有者提交的 Issue 会自动收录。</p>
     </section>
   </div>
   <div id="toast" role="status" class="toast" hidden></div>

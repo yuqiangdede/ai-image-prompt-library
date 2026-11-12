@@ -5,6 +5,7 @@
   const state = { items: [], catalog: null, search: "", kind: "all", category: "all", sort: "new", view: "large", favorites: new Set(), selected: null, text: "", manage: null };
   const favoriteKey = "prompt-gallery-favorites-v2";
   const viewKey = "prompt-gallery-view-v1";
+  const promptUrlLimit = 6000; // GitHub errors on very long issue-prefill URLs
   const escapeHtml = text => String(text ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" })[c]);
   const address = path => String(path || "").startsWith("https://") ? path : "./" + String(path || "").split("/").map(encodeURIComponent).join("/");
   const typeName = item => item.kind === "skill" ? "SKILL" : "PROMPT";
@@ -26,7 +27,8 @@
     catch { showToast("此浏览器暂时无法保存收藏"); }
   }
   function syncScrollLock() {
-    document.body.style.overflow = (!$("detail-modal").hidden || !$("skill-import-modal").hidden || !$("skill-manage-modal").hidden) ? "hidden" : "";
+    document.body.style.overflow = (!$("detail-modal").hidden || !$("skill-import-modal").hidden ||
+      !$("prompt-import-modal").hidden || !$("skill-manage-modal").hidden) ? "hidden" : "";
   }
   function applyView(persist) {
     $("gallery").dataset.view = state.view;
@@ -161,23 +163,28 @@
     state.text = "";
     replaceItemQuery("");
   }
-  async function copyText(text) {
-    if (!text) return showToast("内容尚未加载");
+  async function writeClipboard(text) {
     try {
       if (navigator.clipboard && window.isSecureContext) {
         await navigator.clipboard.writeText(text);
-      } else {
-        const node = document.createElement("textarea");
-        node.value = text;
-        node.style.cssText = "position:fixed;left:-9999px;top:0";
-        document.body.append(node);
-        node.select();
-        const ok = document.execCommand("copy");
-        node.remove();
-        if (!ok) throw new Error("复制失败");
+        return true;
       }
-      showToast("已复制到剪贴板");
-    } catch { showToast("复制受限，请选择下方文本手动复制"); }
+    } catch { /* fall back to the textarea method */ }
+    try {
+      const node = document.createElement("textarea");
+      node.value = text;
+      node.style.cssText = "position:fixed;left:-9999px;top:0";
+      document.body.append(node);
+      node.select();
+      const ok = document.execCommand("copy");
+      node.remove();
+      return ok;
+    } catch { return false; }
+  }
+  async function copyText(text) {
+    if (!text) return showToast("内容尚未加载");
+    if (await writeClipboard(text)) showToast("已复制到剪贴板");
+    else showToast("复制受限，请选择下方文本手动复制");
   }
   function download() {
     const item = state.selected;
@@ -200,6 +207,7 @@
   }
   function openSkillImport() {
     if (!$("detail-modal").hidden) closeItem();
+    if (!$("prompt-import-modal").hidden) $("prompt-import-modal").hidden = true;
     $("skill-repo-url").removeAttribute("aria-invalid");
     $("skill-import-error").hidden = true;
     $("skill-import-status").hidden = true;
@@ -219,6 +227,48 @@
     $("skill-import-error").textContent = message;
     $("skill-import-error").hidden = false;
     $("skill-repo-url").focus();
+  }
+  function promptValue(id) {
+    return $(id).value.trim();
+  }
+  function renderPromptSuggestions() {
+    const unique = values => [...new Set(values.filter(Boolean))].sort((a, b) => a.localeCompare(b, "zh-CN"));
+    const options = values => values.map(value => '<option value="' + escapeHtml(value) + '"></option>').join("");
+    $("prompt-category-options").innerHTML = options(unique(state.items.map(item => item.category)));
+    $("prompt-model-options").innerHTML = options(unique(state.items.map(item => item.model)));
+  }
+  function openPromptImport() {
+    if (!$("detail-modal").hidden) closeItem();
+    if (!$("skill-import-modal").hidden) closeSkillImport();
+    clearPromptImport();
+    renderPromptSuggestions();
+    $("prompt-body-count").textContent = $("prompt-body").value.length + " 字";
+    $("prompt-import-modal").hidden = false;
+    syncScrollLock();
+    $("prompt-title").focus();
+    $("prompt-title").select();
+  }
+  function closePromptImport() {
+    if ($("prompt-import-modal").hidden) return;
+    $("prompt-import-modal").hidden = true;
+    syncScrollLock();
+    $("open-prompt-import").focus();
+  }
+  function clearPromptImport() {
+    document.querySelectorAll("#prompt-import-form [aria-invalid]").forEach(node => node.removeAttribute("aria-invalid"));
+    $("prompt-import-error").hidden = true;
+    $("prompt-import-status").hidden = true;
+  }
+  function showPromptError(message, field) {
+    $("prompt-import-error").textContent = message;
+    $("prompt-import-error").hidden = false;
+    if (!field) return;
+    $(field).setAttribute("aria-invalid", "true");
+    $(field).focus();
+  }
+  function promptIssueUrl(params) {
+    const base = (state.catalog?.repository_url || "https://github.com/yuqiangdede/ai-image-prompt-library") + "/issues/new";
+    return base + "?" + params.toString();
   }
   function manageImageUrl(raw) {
     let url;
@@ -429,6 +479,80 @@
       $("skill-import-status").hidden = false;
       window.open(url, "_blank", "noopener,noreferrer");
     });
+    $("open-prompt-import").addEventListener("click", openPromptImport);
+    $("close-prompt-import").addEventListener("click", closePromptImport);
+    $("prompt-import-modal").addEventListener("click", event => {
+      if (event.target.dataset.promptDismiss) closePromptImport();
+    });
+    $("prompt-import-form").addEventListener("input", event => {
+      if (event.target.matches("input, textarea")) event.target.removeAttribute("aria-invalid");
+      $("prompt-import-error").hidden = true;
+      if (event.target.id === "prompt-body") {
+        $("prompt-body-count").textContent = event.target.value.length + " 字";
+      }
+    });
+    $("prompt-import-form").addEventListener("submit", async event => {
+      event.preventDefault();
+      clearPromptImport();
+      const title = promptValue("prompt-title");
+      const description = promptValue("prompt-description");
+      const category = promptValue("prompt-category");
+      const tags = promptValue("prompt-tags");
+      const model = promptValue("prompt-model");
+      const prompt = $("prompt-body").value.trim();
+      const slug = promptValue("prompt-slug");
+      const coverRaw = promptValue("prompt-cover");
+      if (!title) return showPromptError("请填写标题。", "prompt-title");
+      if (title.length > 80) return showPromptError("标题不能超过 80 个字符。", "prompt-title");
+      if (!description) return showPromptError("请填写简介。", "prompt-description");
+      if (description.length > 300) return showPromptError("简介不能超过 300 个字符。", "prompt-description");
+      if (!category) return showPromptError("请填写分类。", "prompt-category");
+      if (category.length > 40) return showPromptError("分类不能超过 40 个字符。", "prompt-category");
+      if (model.length > 40) return showPromptError("适用模型不能超过 40 个字符。", "prompt-model");
+      if (!prompt) return showPromptError("请填写提示词正文。", "prompt-body");
+      if (prompt.length > 20000) return showPromptError("提示词正文不能超过 20000 个字符。", "prompt-body");
+      if (slug && slug.length > 60) return showPromptError("目录标识不能超过 60 个字符。", "prompt-slug");
+      if (slug && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
+        return showPromptError("目录标识只允许小写字母、数字和连字符。", "prompt-slug");
+      }
+      let cover = "";
+      if (coverRaw) {
+        cover = manageImageUrl(coverRaw);
+        if (!cover) {
+          return showPromptError("封面图地址请填写 GitHub 图片链接（raw.githubusercontent.com，或 github.com 的 raw/blob 链接）。", "prompt-cover");
+        }
+      }
+      const params = new URLSearchParams();
+      params.set("template", "add-prompt.yml");
+      params.set("title", "[添加提示词] " + title);
+      params.set("prompt_title", title);
+      params.set("prompt_description", description);
+      params.set("prompt_category", category);
+      if (tags) params.set("prompt_tags", tags);
+      if (model) params.set("prompt_model", model);
+      params.set("prompt_body", prompt);
+      if (cover) params.set("cover_url", cover);
+      if (slug) params.set("prompt_slug", slug);
+      let url = promptIssueUrl(params);
+      let message = "已打开 GitHub 确认页。请核对内容；封面还没填地址时，请在页面里上传封面图，然后提交 Issue。";
+      let copyPromise = null;
+      if (url.length > promptUrlLimit) {
+        params.delete("prompt_body");
+        url = promptIssueUrl(params);
+        copyPromise = writeClipboard(prompt);
+        message = "提示词正文较长，正在复制到剪贴板；打开 GitHub 页面后请粘贴到「提示词正文」再提交。";
+      }
+      $("prompt-import-fallback").href = url;
+      $("prompt-import-status-text").textContent = message;
+      $("prompt-import-status").hidden = false;
+      window.open(url, "_blank", "noopener,noreferrer");
+      if (copyPromise) {
+        const copied = await copyPromise;
+        $("prompt-import-status-text").textContent = copied
+          ? "提示词正文较长，已复制到剪贴板。请在打开的 GitHub 页面「提示词正文」中粘贴后再提交。"
+          : "提示词正文较长，未能自动复制。请从上面的输入框复制正文，粘贴到 GitHub 页面的「提示词正文」后再提交。";
+      }
+    });
     $("manage-skill").addEventListener("click", openManage);
     $("close-skill-manage").addEventListener("click", closeManage);
     $("skill-manage-modal").addEventListener("click", event => {
@@ -528,11 +652,13 @@
     window.addEventListener("keydown", event => {
       if (event.key === "Escape") {
         if (!$("skill-manage-modal").hidden) { closeManage(); return; }
+        if (!$("prompt-import-modal").hidden) { closePromptImport(); return; }
         if (!$("skill-import-modal").hidden) { closeSkillImport(); return; }
         if (!$("detail-modal").hidden) closeItem();
       }
       if (event.key === "/" && $("detail-modal").hidden && $("skill-import-modal").hidden &&
-          $("skill-manage-modal").hidden && document.activeElement.tagName !== "INPUT") {
+          $("prompt-import-modal").hidden && $("skill-manage-modal").hidden &&
+          !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement.tagName)) {
         event.preventDefault(); $("search").focus();
       }
     });

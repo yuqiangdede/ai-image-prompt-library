@@ -3,6 +3,7 @@
 以图片为入口的 Prompt 与 Agent Skill 资料库。无需 VPS、数据库或生图 API。GitHub 保存文本与图片，GitHub Pages 提供手机和电脑都能访问的响应式图库。
 
 - **图库**：搜索、分类、效果图查看、复制 Prompt / Skill 指令、下载完整 Skill ZIP、本地收藏。
+- **添加提示词**：图库右上角填写提示词和封面，经 GitHub Issue 确认后自动写入并发布。
 - **上游关联**：Skill 可绑定原始 GitHub 仓库，展示作者、来源地址、同步 Commit。
 - **自动同步**：GitHub Actions 每天检查并同步允许再分发的上游 Skill 文本、配置与脚本；保留本地 `meta.json` 和封面设置。
 - **管理**：带上游来源的 Skill 可在详情页换封面、增删效果图或删除条目；改动经 GitHub Issue 确认后由 Actions 自动提交。
@@ -22,16 +23,17 @@ library/prompts/<slug>/          Prompt：meta.json、prompt.md、images/
 library/skills/<slug>/           Skill：meta.json、SKILL.md、references/、scripts/等
 library/skills/<slug>/upstream.json  上游仓库、分支和已同步 SHA
 scripts/build_site.py            校验素材、生成索引和 ZIP
+scripts/add_prompt.py            从 GitHub Issue 添加提示词
 scripts/import_skill.py          从 GitHub Issue 导入公开 Skill
 scripts/manage_skill.py          修改图片或删除已收录 Skill
 scripts/sync_upstream.py          检查并同步上游 Skill
-.github/ISSUE_TEMPLATE/          导入、修改图片、删除 Skill 的 Issue 表单
+.github/ISSUE_TEMPLATE/          添加提示词、导入、修改图片、删除 Skill 的 Issue 表单
 .github/workflows/pages.yml      自动更新、构建和部署
 ```
 
 ## 日常操作
 
-**添加提示词**：在 `library/prompts/` 新建目录，放入 `prompt.md`、`meta.json` 和 `images/` 下人工上传的效果图，提交 `main` 后自动发布。
+**添加提示词**：在 `library/prompts/` 新建目录，放入 `prompt.md`、`meta.json` 和 `images/` 下人工上传的效果图，提交 `main` 后自动发布。也可以直接点图库右上角的「添加提示词」，走 Issue 表单自动收录，详见下文「从网页添加提示词」。
 
 **添加 Skill**：在 `library/skills/` 新建目录，放入完整 `SKILL.md`、配套资源和 `meta.json`。来自 GitHub 的 Skill 可增加 `upstream.json` 来启用定时同步。
 
@@ -77,6 +79,20 @@ python -m http.server 8000 --directory dist
 - Skill 没有明确授权时只做 `link-only` 索引；复制安装命令仅适用于支持 Skills 的 Agent 环境，不会自动安装到 ChatGPT 网页。
 
 核心实现：`scripts/import_skill.py`、`.github/ISSUE_TEMPLATE/add-skill.yml`、`.github/workflows/pages.yml`。
+
+## 从网页添加提示词（不用命令行）
+
+首页右上角新增「添加提示词」按钮。填写标题、简介、分类、标签、适用模型和提示词正文；封面图可填 GitHub 图片地址，也可以留空后到打开的 GitHub 页面直接上传。点「打开 GitHub 确认页」会预填 Issue 表单，仓库所有者确认提交一次，Actions 就会创建 `library/prompts/<slug>/`，写入 `prompt.md`、`meta.json` 和封面，然后重新构建发布。
+
+规则与限制：
+
+- 只有仓库所有者提交、标题以 `[添加提示词]` 开头的 Issue 会被自动处理。
+- 封面必填：GitHub 图片地址或 Issue 上传文件二选一；上传文件会复制进公开仓库，请确认有权公开。
+- 提示词正文原样写入 `prompt.md`；目录标识（slug）可留空，按日期和内容自动生成。
+- 正文较长、超出 URL 预填长度时，网页会把正文复制到剪贴板并打开只预填其他字段的 Issue 页，需要在「提示词正文」中粘贴一次。
+- 成功后 Issue 自动回复并关闭；失败会回复排查提示，详细原因见 Actions 日志。
+
+核心实现：`scripts/add_prompt.py`、`.github/ISSUE_TEMPLATE/add-prompt.yml`、`.github/workflows/pages.yml`、`site/app.js` 的添加提示词面板。
 
 ## 修改图片或删除已收录的 Skill
 
