@@ -1,0 +1,21 @@
+{
+  "title": "科普百科图｜模块化知识信息图",
+  "description": "输入任意主题，生成博物图鉴与现代百科书页风格的竖版科普信息图，包含主视觉、细节放大、知识模块、机制说明、Top 5 与评分卡。示例封面为糖尿病科普。",
+  "category": "科普图鉴",
+  "tags": [
+    "科普百科",
+    "知识信息图",
+    "模块化排版",
+    "图鉴风格",
+    "知识卡片",
+    "竖版图文",
+    "Top 5"
+  ],
+  "model": "ChatGPT",
+  "updated_at": "2026-11-12",
+  "cover": "images/cover.webp",
+  "images": [
+    "images/cover.webp"
+  ],
+  "related_skills": []
+}
