@@ -1,0 +1,32 @@
+name: 删除已收录的 Skill
+description: 从图库彻底移除一个 Skill 及其关联入口，仅在仓库所有者确认后执行。
+title: "[删除 Skill] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        如果只是封面或效果图不对，请回到图库使用「修改图片」，不要删除整个 Skill。
+        删除会移除 `library/skills/<slug>/` 目录，并从其他条目的关联列表中移除该 Skill。
+  - type: input
+    id: skill_slug
+    attributes:
+      label: Skill 标识（slug）
+      description: 图库条目的目录名，例如 yingzao。不要填标题。
+      placeholder: yingzao
+    validations:
+      required: true
+  - type: input
+    id: skill_title
+    attributes:
+      label: Skill 标题（用于人工核对）
+      description: 可留空；建议从图库详情页复制，避免删错条目。
+      placeholder: Yingzao · 营造
+    validations:
+      required: false
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: 确认
+      options:
+        - label: 我确认删除该 Skill，并接受图库中的关联入口一起移除
+          required: true

@@ -54,6 +54,7 @@ def make_item(folder, kind):
         "source_url": upstream.get("url", meta.get("source_url", "")),
         "source_sha": upstream.get("sha", ""),
         "source_branch": upstream.get("branch", ""),
+        "upstream_linked": bool(upstream.get("url")),
         "external_only": external_only,
         "install_command": meta.get("install_command", ""),
     }
@@ -87,7 +88,7 @@ def build():
     items.sort(key=lambda x: (x["updated_at"], x["title"]), reverse=True)
     repo = os.environ.get("GITHUB_REPOSITORY", "yuqiangdede/ai-image-prompt-library")
     catalog = {
-        "schema_version": 2, "site_name": "AI 生图 Prompt / Skill 图库",
+        "schema_version": 3, "site_name": "AI 生图 Prompt / Skill 图库",
         "repository_url": "https://github.com/" + repo,
         "generated_at": datetime.now(timezone.utc).isoformat(), "items": items,
     }

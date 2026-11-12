@@ -27,7 +27,12 @@ concurrency:
 
 jobs:
   build-and-deploy:
-    if: github.event_name != 'issues' || (github.event.issue.user.login == github.repository_owner && startsWith(github.event.issue.title, '[导入 Skill]'))
+    if: >-
+      github.event_name != 'issues' ||
+      (github.event.issue.user.login == github.repository_owner &&
+        (startsWith(github.event.issue.title, '[导入 Skill]') ||
+         startsWith(github.event.issue.title, '[修改图片]') ||
+         startsWith(github.event.issue.title, '[删除 Skill]')))
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -41,13 +46,23 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Validate import script and frontend
+      - name: Validate scripts and frontend
         run: |
-          python -m py_compile scripts/import_skill.py
+          python -m py_compile scripts/import_skill.py scripts/manage_skill.py
           python -c "from scripts.import_skill import parse_url, select_entry; assert parse_url('https://github.com/op7418/guizang-yingzao-skill')[0] == 'op7418'; assert select_entry({'yingzao/SKILL.md'}, 'main', []) == 'yingzao/SKILL.md'"
+          python - <<'PY'
+          from scripts.manage_skill import attachment_urls, image_extension, linked_image_url, parse_sections, section_value
+          body = "### Skill 标识（slug）\n\nyingzao\n\n### 保留的现有图片\n\nhttps://raw.githubusercontent.com/a/b/main/x.png\n"
+          sections = parse_sections(body)
+          assert section_value(sections, "Skill 标识") == "yingzao"
+          assert linked_image_url("https://github.com/a/b/blob/main/x.png") == "https://raw.githubusercontent.com/a/b/main/x.png"
+          assert attachment_urls("![x](https://github.com/user-attachments/assets/abc)") == ["https://github.com/user-attachments/assets/abc"]
+          assert image_extension(b"\x89PNG\r\n\x1a\nrest") == ".png"
+          PY
           node --check site/app.js
       - name: Import public Skill from owner issue
-        if: github.event_name == 'issues'
+        id: import_skill
+        if: github.event_name == 'issues' && startsWith(github.event.issue.title, '[导入 Skill]')
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -57,12 +72,16 @@ jobs:
             git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "feat(skills): import from issue #${{ github.event.issue.number }}"
             git push origin HEAD:main
           fi
-      - name: Comment on failed import
-        if: failure() && github.event_name == 'issues'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ISSUE_NUMBER: ${{ github.event.issue.number }}
-        run: gh issue comment "$ISSUE_NUMBER" --body "自动导入失败。请在 Actions 查看日志。检查仓库是否公开、是否包含 SKILL.md；包含多个 Skill 时请提供具体文件链接。"
+      - name: Apply image change or deletion from owner issue
+        id: manage_skill
+        if: github.event_name == 'issues' && (startsWith(github.event.issue.title, '[修改图片]') || startsWith(github.event.issue.title, '[删除 Skill]'))
+        run: |
+          python scripts/manage_skill.py
+          git add library
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "chore(skills): apply owner request #${{ github.event.issue.number }}"
+            git push origin HEAD:main
+          fi
       - name: Synchronize allowlisted upstream files
         if: github.event_name == 'push' || github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.sync_upstream)
         run: |
@@ -83,11 +102,39 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-      - name: Confirm successful Skill import
-        if: success() && github.event_name == 'issues'
+      - name: Comment on failed owner request
+        if: failure() && github.event_name == 'issues' && (steps.import_skill.outcome == 'failure' || steps.manage_skill.outcome == 'failure')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+        run: |
+          case "$ISSUE_TITLE" in
+            "[导入 Skill]"*) HINT="请检查仓库是否公开、是否包含 SKILL.md；包含多个 Skill 时请提供具体文件链接。";;
+            "[修改图片]"*) HINT="请检查 Skill 标识、图片地址和上传文件（PNG/JPG/WebP/GIF，单张不超过 8 MB），详细原因见 Actions 日志。";;
+            "[删除 Skill]"*) HINT="请检查 Skill 标识是否正确，并确认已勾选删除确认。";;
+            *) HINT="详细原因见 Actions 日志。";;
+          esac
+          gh issue comment "$ISSUE_NUMBER" --body "自动处理失败。$HINT"
+      - name: Comment on failed deployment after owner request
+        if: failure() && github.event_name == 'issues' && (steps.import_skill.outcome == 'success' || steps.manage_skill.outcome == 'success') && steps.deployment.outcome != 'success'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
-          gh issue comment "$ISSUE_NUMBER" --body "Skill 已自动导入。图库：https://yuqiangdede.github.io/ai-image-prompt-library/"
+          gh issue comment "$ISSUE_NUMBER" --body "请求已处理，但构建或部署失败。请查看 Actions 日志；修复后重新运行工作流即可。"
+      - name: Confirm successful owner request
+        if: success() && github.event_name == 'issues'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+        run: |
+          case "$ISSUE_TITLE" in
+            "[导入 Skill]"*) MESSAGE="Skill 已自动导入。";;
+            "[修改图片]"*) MESSAGE="图片已更新，部署完成后刷新图库即可看到。";;
+            "[删除 Skill]"*) MESSAGE="Skill 已从图库删除。";;
+            *) MESSAGE="请求已处理。";;
+          esac
+          gh issue comment "$ISSUE_NUMBER" --body "$MESSAGE 图库：https://yuqiangdede.github.io/ai-image-prompt-library/"
           gh issue close "$ISSUE_NUMBER" --reason completed

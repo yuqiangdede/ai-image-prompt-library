@@ -5,6 +5,7 @@
 - **图库**：搜索、分类、效果图查看、复制 Prompt / Skill 指令、下载完整 Skill ZIP、本地收藏。
 - **上游关联**：Skill 可绑定原始 GitHub 仓库，展示作者、来源地址、同步 Commit。
 - **自动同步**：GitHub Actions 每天检查并同步允许再分发的上游 Skill 文本、配置与脚本；保留本地 `meta.json` 和封面设置。
+- **管理**：带上游来源的 Skill 可在详情页换封面、增删效果图或删除条目；改动经 GitHub Issue 确认后由 Actions 自动提交。
 - **来源与版权**：上游图片许可可能不同于 Skill 文本许可；默认不镜像第三方参考图片。本站示例的斑马封面直接引用上游官方图片地址。
 
 ## 在线地址
@@ -21,7 +22,10 @@ library/prompts/<slug>/          Prompt：meta.json、prompt.md、images/
 library/skills/<slug>/           Skill：meta.json、SKILL.md、references/、scripts/等
 library/skills/<slug>/upstream.json  上游仓库、分支和已同步 SHA
 scripts/build_site.py            校验素材、生成索引和 ZIP
+scripts/import_skill.py          从 GitHub Issue 导入公开 Skill
+scripts/manage_skill.py          修改图片或删除已收录 Skill
 scripts/sync_upstream.py          检查并同步上游 Skill
+.github/ISSUE_TEMPLATE/          导入、修改图片、删除 Skill 的 Issue 表单
 .github/workflows/pages.yml      自动更新、构建和部署
 ```
 
@@ -31,7 +35,7 @@ scripts/sync_upstream.py          检查并同步上游 Skill
 
 **添加 Skill**：在 `library/skills/` 新建目录，放入完整 `SKILL.md`、配套资源和 `meta.json`。来自 GitHub 的 Skill 可增加 `upstream.json` 来启用定时同步。
 
-**修改封面**：调整 `meta.json` 的 `cover` / `images`。上游同步不会修改本地 `meta.json`。
+**修改封面或图片**：在详情页点「管理」走 GitHub Issue 流程，或直接调整 `meta.json` 的 `cover` / `images`。上游同步不会修改本地 `meta.json`。
 
 **手动同步上游**：仓库的 Actions → Deploy Prompt & Skill Gallery → Run workflow → 选择“同步上游”。
 
@@ -58,9 +62,10 @@ python -m http.server 8000 --directory dist
 - 如果账户/仓库的 GitHub Actions 工作流写入权限被关闭，需要在 Settings → Actions → General 允许写入。
 
 项目使用原生 HTML/CSS/JS 和 Python 标准库。
+
 ## 只填 GitHub 原 Skill 地址，自动生成并发布
 
-首页新增“通过 GitHub 地址自动添加 Skill”入口。复制原作者仓库地址，点击“自动添加 Skill”；浏览器会打开 **GitHub Issue 表单**（自动填好地址），仓库所有者登录后点击提交，就会触发 GitHub Actions 自动添加并发布。
+首页右上角新增“添加 Skill”按钮。点击后在弹窗中粘贴原作者仓库地址，再点“打开 GitHub 确认页”；浏览器会打开 **GitHub Issue 表单**（自动填好地址），仓库所有者登录后点击提交，就会触发 GitHub Actions 自动添加并发布。
 
 自动识别公开仓库中的 SKILL.md、README 与 frontmatter；生成标题、简介、分类、标签、封面链接（如原仓库没有合适图片则用默认占位图）、安装命令、meta.json、upstream.json 和独立编写的 SKILL.md 索引。**不复制上游完整源代码、参考图或不明授权文件**。上游 SHA 每日自动更新。
 
@@ -73,13 +78,30 @@ python -m http.server 8000 --directory dist
 
 核心实现：`scripts/import_skill.py`、`.github/ISSUE_TEMPLATE/add-skill.yml`、`.github/workflows/pages.yml`。
 
+## 修改图片或删除已收录的 Skill
+
+带上游来源的 Skill 在详情页会显示「管理」入口：
+
+- **修改图片**：勾选要保留的图、选择封面、填写新图地址；点「在 GitHub 确认修改」会打开已预填的 Issue 表单，还可以直接上传手机或电脑里的图片。提交后 Actions 会把上传文件保存到 `library/skills/<slug>/images/`，更新 `meta.json`，然后重新构建发布。
+- **删除 Skill**：先在图库确认，再打开删除 Issue 表单并勾选确认。Actions 会删除整个 `library/skills/<slug>/` 目录，并从其他条目的 `related_skills` 中移除引用。
+
+限制与规则：
+
+- 只有仓库所有者提交、标题为 `[修改图片]` 或 `[删除 Skill]` 的 Issue 会触发自动处理。
+- 上传支持 PNG / JPG / WebP / GIF，单张不超过 8 MB、每次最多 10 张；上传文件会复制进公开仓库，请勿上传隐私照片或无权公开的素材。
+- 填写 GitHub 图片地址时不会镜像第三方图片，只在 `meta.json` 中保留链接；请确认图片允许公开引用。
+- 删除只影响 `library/` 和关联入口；README 中手工维护的收录说明需要按需同步更新。
+- 处理结果会回复到 Issue 并自动关闭；失败时按 Issue 提示到 Actions 查看日志。
+
+核心实现：`scripts/manage_skill.py`、`.github/ISSUE_TEMPLATE/edit-skill.yml`、`.github/ISSUE_TEMPLATE/delete-skill.yml`、`site/app.js` 的管理面板。
+
 ## 手工添加 Skill（不用命令行）
 
 以“营造 Yingzao”为例，所有操作都可在 GitHub 网页完成：
 
 1. 打开仓库 `library/skills/`，选择 **Add file → Create new file**。先创建 `<slug>/meta.json`，提交时选择 `main`。GitHub 不能上传空目录，新建路径时用斜杠分隔。
 2. 同目录创建 `SKILL.md`。**只有得到原作者许可且许可允许再分发时**，才复制完整 Skill 与配套文件；否则仅写原创介绍与原项目链接，并在 `meta.json` 设置 `"external_only": true`。
-3. 有上游来源时，再创建 `upstream.json`。明确许可的 MIT 项目可使用已支持的 `allowlisted-mit-text`；许可不明确的项目用 `link-only`，每天只核对上游 Commit，不复制文件。
+3. 有上游来源时，再创建 `upstream.json`。明确许可的 MIT 项目可使用 `allowlisted-mit-text`，已获用户确认的完整文本镜像可使用 `approved-text-mirror`；许可不明确的项目用 `link-only`，每天只核对上游 Commit，不复制文件。
 4. 封面可放在 `library/skills/<slug>/images/`：进入对应目录，点击 **Add file → Upload files** 上传图片，然后将 `meta.json` 中的 `cover` 和 `images` 设为 `images/cover.jpg` 等路径。也可使用原项目允许公开引用的 HTTPS GitHub 图片 URL。
 5. 检查 Actions → **Deploy Prompt & Skill Gallery** 是否执行成功，然后刷新 [GitHub Pages 图库](https://yuqiangdede.github.io/ai-image-prompt-library/)。
 

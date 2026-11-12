@@ -1,0 +1,59 @@
+name: 修改 Skill 图片
+description: 更换已收录 Skill 的封面或效果图，提交后由 GitHub Actions 自动更新。
+title: "[修改图片] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        从图库详情页的「管理」进入时，Skill 标识、保留列表和封面已经自动填好。
+        只有仓库所有者提交的 Issue 会自动处理；完成后 Issue 会自动回复并关闭。
+        上传的图片会复制到公开仓库，请勿上传隐私照片或无权公开的素材。
+  - type: input
+    id: skill_slug
+    attributes:
+      label: Skill 标识（slug）
+      description: 图库条目的目录名，例如 yingzao。不要填标题。
+      placeholder: yingzao
+    validations:
+      required: true
+  - type: textarea
+    id: keep_images
+    attributes:
+      label: 保留的现有图片
+      description: 每行一个地址。删除某一行即从图库移除该图片；要移除全部现有图片请只填「无」。留空表示保留全部。
+      placeholder: "https://raw.githubusercontent.com/..."
+      render: text
+    validations:
+      required: false
+  - type: input
+    id: cover_url
+    attributes:
+      label: 封面图片地址
+      description: 必须是保留或新增的图片之一。留空时优先用第一张新增图片，否则用第一张现有图片。
+      placeholder: "https://raw.githubusercontent.com/..."
+    validations:
+      required: false
+  - type: textarea
+    id: new_image_urls
+    attributes:
+      label: 新增图片地址
+      description: 每行一个 GitHub 图片地址；也可以留空，改用下面的上传。
+      placeholder: "https://raw.githubusercontent.com/..."
+      render: text
+    validations:
+      required: false
+  - type: upload
+    id: new_images
+    attributes:
+      label: 上传新图片
+      description: 支持 PNG、JPG、WebP、GIF；单张不超过 8 MB，每次最多 10 张。上传的图片会复制到仓库的该 Skill 目录。
+    validations:
+      required: false
+      accept: ".png,.jpg,.jpeg,.webp,.gif"
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: 确认
+      options:
+        - label: 我确认按上面的保留列表和新增图片更新，未列出的现有图片会从图库移除
+          required: true

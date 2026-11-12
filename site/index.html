@@ -13,34 +13,41 @@
   <header class="topbar">
     <div class="topbar-inner">
       <a class="brand" href="./" aria-label="回到图库"><span class="brand-symbol">P<span>✳</span>S</span><span class="brand-text">PROMPT<br><small>LIBRARY</small></span></a>
-      <div class="top-right"><span class="status"><span class="status-dot"></span> GitHub 自动同步</span><a id="repository-link" class="repo-link" href="https://github.com/yuqiangdede/ai-image-prompt-library" target="_blank" rel="noopener noreferrer">GitHub ↗</a></div>
+      <div class="top-right"><span class="status"><span class="status-dot"></span> GitHub 自动同步</span><a id="repository-link" class="repo-link" href="https://github.com/yuqiangdede/ai-image-prompt-library" target="_blank" rel="noopener noreferrer">GitHub ↗</a><button id="open-skill-import" class="import-trigger" type="button" aria-haspopup="dialog" aria-controls="skill-import-modal" aria-label="通过 GitHub 地址添加 Skill"><span class="import-plus" aria-hidden="true">＋</span>添加 Skill</button></div>
     </div>
   </header>
   <main class="shell">
     <section class="workspace" aria-label="图库浏览">
       <div class="workspace-head"><div><p class="eyebrow small">PROMPT & SKILL LIBRARY</p><h2>灵感素材库</h2><p class="workspace-intro">按效果图查找 Prompt、Skill，快速复制创作方法。</p></div><div class="workspace-count" aria-label="图库素材数量"><strong id="hero-count">—</strong><span>个素材</span></div></div>
-      <section class="skill-import" aria-labelledby="skill-import-title">
-        <div><h3 id="skill-import-title">通过 GitHub 地址自动添加 Skill</h3>
-          <p class="skill-import-desc">只填原项目地址，自动提取名称、简介、标签与封面，关联上游版本。</p></div>
-        <form id="skill-import-form" class="skill-import-form">
-          <label class="visually-hidden" for="skill-repo-url">原始 Skill GitHub 地址</label>
-          <input id="skill-repo-url" type="url" required inputmode="url" spellcheck="false" autocomplete="url" placeholder="https://github.com/作者/skill-仓库">
-          <button type="submit">自动添加 Skill</button>
-        </form>
-        <p class="skill-import-note">会打开 GitHub 确认页面；仓库所有者点击提交后自动收录。一个仓库有多个 Skill 时，请填具体 SKILL.md 链接。</p>
-      </section>
       <div class="tools">
         <label class="search"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="搜索风格、Skill、标签、提示词…" autocomplete="off" aria-label="搜索素材"><kbd>/</kbd></label>
         <select id="sort" aria-label="排序方式"><option value="new">最近更新</option><option value="az">名称 A—Z</option></select>
       </div>
-      <nav class="tabs" id="nav-tabs" aria-label="素材类型">
-        <button type="button" data-type="all" class="active">全部素材 <span id="count-all">0</span></button>
-        <button type="button" data-type="skill">Skills <span id="count-skill">0</span></button>
-        <button type="button" data-type="prompt">Prompts <span id="count-prompt">0</span></button>
-        <button type="button" data-type="favorites">♡ 收藏 <span id="count-favorites">0</span></button>
-      </nav>
+      <div class="tabs-row">
+        <nav class="tabs" id="nav-tabs" aria-label="素材类型">
+          <button type="button" data-type="all" class="active">全部素材 <span id="count-all">0</span></button>
+          <button type="button" data-type="skill">Skills <span id="count-skill">0</span></button>
+          <button type="button" data-type="prompt">Prompts <span id="count-prompt">0</span></button>
+          <button type="button" data-type="favorites">♡ 收藏 <span id="count-favorites">0</span></button>
+        </nav>
+        <div class="view-switch view-switch-tabs" id="view-switch" role="group" aria-label="图标大小">
+          <button type="button" data-view="large" aria-pressed="true" title="大图标" aria-label="大图标">
+            <svg viewBox="0 0 18 18" fill="currentColor" aria-hidden="true" focusable="false"><rect x="2" y="2" width="6" height="6" rx="1"/><rect x="10" y="2" width="6" height="6" rx="1"/><rect x="2" y="10" width="6" height="6" rx="1"/><rect x="10" y="10" width="6" height="6" rx="1"/></svg>
+          </button>
+          <button type="button" data-view="small" aria-pressed="false" title="小图标" aria-label="小图标">
+            <svg viewBox="0 0 18 18" fill="currentColor" aria-hidden="true" focusable="false"><rect x="2" y="2" width="4" height="4" rx=".8"/><rect x="7" y="2" width="4" height="4" rx=".8"/><rect x="12" y="2" width="4" height="4" rx=".8"/><rect x="2" y="7" width="4" height="4" rx=".8"/><rect x="7" y="7" width="4" height="4" rx=".8"/><rect x="12" y="7" width="4" height="4" rx=".8"/><rect x="2" y="12" width="4" height="4" rx=".8"/><rect x="7" y="12" width="4" height="4" rx=".8"/><rect x="12" y="12" width="4" height="4" rx=".8"/></svg>
+          </button>
+        </div>
+      </div>
       <div class="filters"><div id="category-nav" class="categories"></div><button id="reset-filter" class="clear" hidden>清除筛选 ×</button></div>
-      <div class="result-info"><span id="result-count">正在读取素材…</span><span>点开图片，复制创作方法 ↗</span></div>
+      <div class="result-info"><span id="result-count">正在读取素材…</span><span>点开图片，复制创作方法 ↗</span><div class="view-switch view-switch-inline" role="group" aria-label="图标大小">
+        <button type="button" data-view="large" aria-pressed="true" title="大图标" aria-label="大图标">
+          <svg viewBox="0 0 18 18" fill="currentColor" aria-hidden="true" focusable="false"><rect x="2" y="2" width="6" height="6" rx="1"/><rect x="10" y="2" width="6" height="6" rx="1"/><rect x="2" y="10" width="6" height="6" rx="1"/><rect x="10" y="10" width="6" height="6" rx="1"/></svg>
+        </button>
+        <button type="button" data-view="small" aria-pressed="false" title="小图标" aria-label="小图标">
+          <svg viewBox="0 0 18 18" fill="currentColor" aria-hidden="true" focusable="false"><rect x="2" y="2" width="4" height="4" rx=".8"/><rect x="7" y="2" width="4" height="4" rx=".8"/><rect x="12" y="2" width="4" height="4" rx=".8"/><rect x="2" y="7" width="4" height="4" rx=".8"/><rect x="7" y="7" width="4" height="4" rx=".8"/><rect x="12" y="7" width="4" height="4" rx=".8"/><rect x="2" y="12" width="4" height="4" rx=".8"/><rect x="7" y="12" width="4" height="4" rx=".8"/><rect x="12" y="12" width="4" height="4" rx=".8"/></svg>
+        </button>
+      </div></div>
       <div id="gallery" class="gallery" aria-live="polite"><div class="empty">正在读取图库…</div></div>
     </section>
     <footer class="footer"><span>© PROMPT & SKILL GALLERY</span><span>内容由 GitHub 托管 · 请尊重原作者许可</span><a href="https://github.com/yuqiangdede/ai-image-prompt-library" target="_blank" rel="noopener">查看源代码 ↗</a></footer>
@@ -55,8 +62,75 @@
           <div id="detail-meta" class="detail-meta"></div>
           <div id="source-box" class="source-box" hidden><span>UPSTREAM SOURCE</span><a id="upstream-link" href="#" target="_blank" rel="noopener">查看原始 Skill ↗</a><code id="upstream-sha"></code></div>
           <div class="action-stack"><button id="copy-primary" class="primary-action">复制完整内容</button><div class="secondary-actions"><button id="copy-text">仅复制原文</button><button id="download-file">下载文件</button></div></div>
-          <p id="detail-note" class="detail-note"></p><div id="detail-related" class="related"></div>
+          <p id="detail-note" class="detail-note"></p>
+          <div id="manage-box" class="manage-box" hidden><div><span class="manage-box-kicker">SKILL MANAGEMENT</span><p>封面或效果图不对？可以修改图片，或把整个 Skill 从图库移除。</p></div><button id="manage-skill" type="button" aria-haspopup="dialog" aria-controls="skill-manage-modal">管理</button></div>
+          <div id="detail-related" class="related"></div>
           <div class="content-box"><div class="content-head"><h3 id="content-heading">完整内容</h3><a id="open-source" target="_blank" rel="noopener">在 GitHub 中打开 ↗</a></div><pre id="detail-content"></pre></div>
+        </div>
+      </div>
+    </section>
+  </div>
+  <div id="skill-import-modal" class="modal import-modal" hidden>
+    <div class="modal-backdrop" data-import-dismiss="1"></div>
+    <section class="import-panel" role="dialog" aria-modal="true" aria-labelledby="skill-import-title" aria-describedby="skill-import-desc">
+      <div class="import-panel-top">
+        <div><p class="import-kicker">GITHUB IMPORT</p><h2 id="skill-import-title">添加 Skill</h2></div>
+        <button id="close-skill-import" class="import-close" type="button" aria-label="关闭">✕</button>
+      </div>
+      <p id="skill-import-desc" class="import-desc">粘贴原项目的 GitHub 地址，自动生成名称、简介、标签与封面，并关联上游版本。</p>
+      <form id="skill-import-form" class="skill-import-form" novalidate>
+        <label for="skill-repo-url">GitHub 地址</label>
+        <input id="skill-repo-url" type="url" required inputmode="url" spellcheck="false" autocomplete="url" placeholder="https://github.com/作者/skill-仓库" aria-describedby="skill-import-help skill-import-error">
+        <p id="skill-import-help" class="import-help">支持仓库首页、Skill 子目录或具体 SKILL.md 链接；仓库有多个 Skill 时请填写具体文件链接。</p>
+        <p id="skill-import-error" class="import-error" role="alert" hidden></p>
+        <button type="submit" class="import-submit">打开 GitHub 确认页 <span aria-hidden="true">↗</span></button>
+      </form>
+      <div id="skill-import-status" class="import-status" role="status" aria-live="polite" hidden>
+        <p id="skill-import-status-text"></p>
+        <a id="skill-import-fallback" href="#" target="_blank" rel="noopener noreferrer">没有自动打开？点此继续 ↗</a>
+      </div>
+      <p class="import-note">GitHub Pages 无法直接写入仓库：需要在打开的 Issue 页由仓库所有者确认提交一次，随后由 Actions 自动收录。</p>
+    </section>
+  </div>
+  <div id="skill-manage-modal" class="modal manage-modal" hidden>
+    <div class="modal-backdrop" data-manage-dismiss="1"></div>
+    <section class="manage-panel" role="dialog" aria-modal="true" aria-labelledby="manage-title" aria-describedby="manage-desc">
+      <div class="manage-panel-top">
+        <div><p class="manage-kicker">SKILL MANAGEMENT</p><h2 id="manage-title">管理 Skill</h2></div>
+        <button id="close-skill-manage" class="manage-close" type="button" aria-label="关闭管理面板">✕</button>
+      </div>
+      <p id="manage-desc" class="manage-desc"></p>
+      <section class="manage-section" aria-labelledby="manage-images-heading">
+        <div class="manage-section-head"><h3 id="manage-images-heading">图片</h3><p>勾选要保留的图片；取消勾选的图片不再出现在图库中。</p></div>
+        <div id="manage-images" class="manage-images"></div>
+        <p id="manage-summary" class="manage-summary" role="status"></p>
+      </section>
+      <section class="manage-section" aria-labelledby="manage-add-heading">
+        <label id="manage-add-heading" for="manage-new-image">新增图片地址</label>
+        <div class="manage-add-row">
+          <input id="manage-new-image" type="url" inputmode="url" spellcheck="false" autocomplete="off" placeholder="https://raw.githubusercontent.com/…">
+          <button id="manage-add-image" type="button">添加</button>
+        </div>
+        <p id="manage-add-error" class="import-error" role="alert" hidden></p>
+        <p class="manage-help">也可在下一步打开的 GitHub 页面直接上传手机或电脑里的图片：PNG / JPG / WebP / GIF，单张不超过 8 MB，每次最多 10 张。若希望稍后上传的图片作封面，请先选「新增图片优先作封面」。</p>
+      </section>
+      <div id="manage-status" class="import-status" role="status" aria-live="polite" hidden>
+        <p id="manage-status-text"></p>
+        <a id="manage-status-link" href="#" target="_blank" rel="noopener noreferrer">没有自动打开？点此继续 ↗</a>
+      </div>
+      <div class="manage-actions">
+        <button id="manage-submit" class="primary-action" type="button">在 GitHub 确认修改 ↗</button>
+        <a id="manage-edit-meta" class="manage-edit-link" target="_blank" rel="noopener">编辑标题与简介 ↗</a>
+      </div>
+      <section class="manage-danger" aria-labelledby="manage-danger-heading">
+        <div><h3 id="manage-danger-heading">删除此 Skill</h3><p>会移除整个 Skill 目录和关联入口；如果只是图片不对，请先修改图片。</p></div>
+        <button id="manage-delete" type="button">删除…</button>
+      </section>
+      <div id="manage-confirm" class="manage-confirm" hidden>
+        <p>确认删除「<strong id="manage-confirm-title"></strong>」？还需要到 GitHub 提交一次删除 Issue，Actions 执行后才会真正移除。</p>
+        <div class="manage-confirm-actions">
+          <button id="manage-delete-open" class="danger-action" type="button">打开删除确认页 ↗</button>
+          <button id="manage-delete-cancel" type="button">取消</button>
         </div>
       </div>
     </section>

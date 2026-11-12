@@ -2,14 +2,19 @@
 (() => {
   "use strict";
   const $ = id => document.getElementById(id);
-  const state = { items: [], catalog: null, search: "", kind: "all", category: "all", sort: "new", favorites: new Set(), selected: null, text: "" };
+  const state = { items: [], catalog: null, search: "", kind: "all", category: "all", sort: "new", view: "large", favorites: new Set(), selected: null, text: "", manage: null };
   const favoriteKey = "prompt-gallery-favorites-v2";
+  const viewKey = "prompt-gallery-view-v1";
   const escapeHtml = text => String(text ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" })[c]);
   const address = path => String(path || "").startsWith("https://") ? path : "./" + String(path || "").split("/").map(encodeURIComponent).join("/");
   const typeName = item => item.kind === "skill" ? "SKILL" : "PROMPT";
   let timer;
 
   try { state.favorites = new Set(JSON.parse(localStorage.getItem(favoriteKey) || "[]")); } catch { state.favorites = new Set(); }
+  try {
+    const savedView = localStorage.getItem(viewKey);
+    if (savedView === "large" || savedView === "small") state.view = savedView;
+  } catch { state.view = "large"; }
   function showToast(message) {
     $("toast").textContent = message;
     $("toast").hidden = false;
@@ -19,6 +24,18 @@
   function saveFavorites() {
     try { localStorage.setItem(favoriteKey, JSON.stringify([...state.favorites])); }
     catch { showToast("此浏览器暂时无法保存收藏"); }
+  }
+  function syncScrollLock() {
+    document.body.style.overflow = (!$("detail-modal").hidden || !$("skill-import-modal").hidden || !$("skill-manage-modal").hidden) ? "hidden" : "";
+  }
+  function applyView(persist) {
+    $("gallery").dataset.view = state.view;
+    document.querySelectorAll(".view-switch [data-view]").forEach(node => {
+      node.setAttribute("aria-pressed", String(node.dataset.view === state.view));
+    });
+    if (!persist) return;
+    try { localStorage.setItem(viewKey, state.view); }
+    catch { showToast("此浏览器暂时无法记住图标大小"); }
   }
   function listFiltered() {
     const q = state.search.trim().toLocaleLowerCase();
@@ -120,10 +137,11 @@
       : item.kind === "skill"
       ? "ZIP 保留 Skill 配套文本、设计配置与脚本；上游有版权限制的参考图片不在 ZIP 内。复制文本不会自动安装 Skill。"
       : "复制后可以直接粘贴到 ChatGPT 图片生成对话。";
+    $("manage-box").hidden = !(item.kind === "skill" && (item.upstream_linked === true || item.source_url));
     $("open-source").href = externalSkill ? item.source_url : state.catalog.repository_url + "/blob/main/" + item.content_path.split("/").map(encodeURIComponent).join("/");
     $("open-source").textContent = externalSkill ? "到原项目查看完整 Skill ↗" : "在 GitHub 中打开 ↗";
     $("detail-modal").hidden = false;
-    document.body.style.overflow = "hidden";
+    syncScrollLock();
     if (updateQuery) replaceItemQuery(id);
     try {
       const response = await fetch(address(item.content_path), { cache: "no-store" });
@@ -138,7 +156,7 @@
   }
   function closeItem() {
     $("detail-modal").hidden = true;
-    document.body.style.overflow = "";
+    syncScrollLock();
     state.selected = null;
     state.text = "";
     replaceItemQuery("");
@@ -180,28 +198,294 @@
     link.click();
     link.remove();
   }
+  function openSkillImport() {
+    if (!$("detail-modal").hidden) closeItem();
+    $("skill-repo-url").removeAttribute("aria-invalid");
+    $("skill-import-error").hidden = true;
+    $("skill-import-status").hidden = true;
+    $("skill-import-modal").hidden = false;
+    syncScrollLock();
+    $("skill-repo-url").focus();
+    $("skill-repo-url").select();
+  }
+  function closeSkillImport() {
+    if ($("skill-import-modal").hidden) return;
+    $("skill-import-modal").hidden = true;
+    syncScrollLock();
+    $("open-skill-import").focus();
+  }
+  function showImportError(message) {
+    $("skill-repo-url").setAttribute("aria-invalid", "true");
+    $("skill-import-error").textContent = message;
+    $("skill-import-error").hidden = false;
+    $("skill-repo-url").focus();
+  }
+  function manageImageUrl(raw) {
+    let url;
+    try { url = new URL(raw); } catch { return null; }
+    if (url.protocol !== "https:" || url.username || url.password) return null;
+    if (url.hostname === "raw.githubusercontent.com") return url.href;
+    if (url.hostname !== "github.com") return null;
+    const parts = url.pathname.split("/").filter(Boolean);
+    if (parts[0] === "user-attachments" && (parts[1] === "assets" || parts[1] === "files")) return url.href;
+    if (parts.length >= 5 && (parts[2] === "raw" || parts[2] === "blob")) {
+      return "https://raw.githubusercontent.com/" + parts[0] + "/" + parts[1] + "/" + parts[3] +
+        "/" + parts.slice(4).join("/") + url.search;
+    }
+    return null;
+  }
+  function manageFocus(selector) {
+    const node = document.querySelector(selector);
+    if (node) node.focus();
+  }
+  function renderManage() {
+    const manage = state.manage;
+    if (!manage) return;
+    const images = manage.images;
+    const tiles = images.map((image, index) => {
+      const kept = image.kept;
+      const cover = manage.cover === image.src;
+      return '<figure class="manage-image' + (kept ? "" : " is-dropped") + '">' +
+        '<div class="manage-image-frame">' +
+        '<img loading="lazy" src="' + escapeHtml(address(image.src)) + '" alt="' +
+        escapeHtml((image.isNew ? "新增图片 " : "图片 ") + (index + 1)) + '">' +
+        (image.isNew ? '<span class="manage-image-badge">新增</span>' : "") +
+        (kept ? "" : '<span class="manage-image-dropped">已移除</span>') +
+        '</div><figcaption>' +
+        '<label><input type="checkbox" data-manage-keep="' + index + '" aria-label="保留图片 ' +
+        (index + 1) + '"' + (kept ? " checked" : "") + '> 保留</label>' +
+        '<label><input type="radio" name="manage-cover" data-manage-cover="' + index +
+        '" aria-label="将图片 ' + (index + 1) + ' 设为封面"' +
+        (cover ? " checked" : "") + (kept ? "" : " disabled") + '> 封面</label>' +
+        '</figcaption>' +
+        (image.isNew ? '<button type="button" class="manage-image-remove" data-manage-remove="' + index +
+          '" aria-label="移除这张新增图片">✕</button>' : "") +
+        '</figure>';
+    }).join("");
+    const autoCover = images.length
+      ? '<label class="manage-auto-cover"><input type="radio" name="manage-cover" data-manage-cover="auto"' +
+        (manage.cover ? "" : " checked") + '> 新增图片优先作封面（含稍后上传）</label>'
+      : "";
+    $("manage-images").innerHTML = images.length
+      ? tiles + autoCover
+      : '<p class="manage-empty">当前没有图片。可以添加图片地址，或在 GitHub 表单中上传。</p>';
+    const kept = images.filter(image => image.kept);
+    const newCount = kept.filter(image => image.isNew).length;
+    const coverLabel = manage.cover
+      ? (images.find(image => image.src === manage.cover)?.isNew ? "新增图片" : "已选图片")
+      : "自动（优先新增图片）";
+    $("manage-summary").textContent = images.length
+      ? "将保留 " + kept.length + " 张图片" + (newCount ? "（其中新增 " + newCount + " 张）" : "") +
+        "；封面：" + coverLabel + "。"
+      : "当前没有图片。";
+  }
+  function openManage() {
+    const item = state.selected;
+    if (!item) return;
+    const seen = new Set();
+    const images = [];
+    const add = src => {
+      if (!src || seen.has(src)) return;
+      seen.add(src);
+      images.push({ src, kept: true, isNew: false });
+    };
+    (item.images || []).forEach(add);
+    if (item.cover) add(item.cover);
+    state.manage = { item, images, cover: item.cover || (images[0] && images[0].src) || "" };
+    $("manage-title").textContent = "管理「" + item.title + "」";
+    $("manage-desc").textContent = "调整封面和效果图，或从图库移除这个 Skill。修改会先生成 GitHub Issue；只有仓库所有者提交的 Issue 会被 Actions 自动处理。";
+    $("manage-new-image").value = "";
+    $("manage-add-error").hidden = true;
+    $("manage-status").hidden = true;
+    $("manage-confirm").hidden = true;
+    $("manage-delete").hidden = false;
+    $("manage-edit-meta").href = state.catalog.repository_url + "/blob/main/library/skills/" +
+      encodeURIComponent(item.slug) + "/meta.json";
+    renderManage();
+    $("skill-manage-modal").hidden = false;
+    syncScrollLock();
+    $("close-skill-manage").focus();
+  }
+  function closeManage() {
+    if ($("skill-manage-modal").hidden) return;
+    $("skill-manage-modal").hidden = true;
+    state.manage = null;
+    syncScrollLock();
+    if (!$("detail-modal").hidden) $("manage-skill").focus();
+  }
+  function addManageImage() {
+    const manage = state.manage;
+    if (!manage) return;
+    const input = $("manage-new-image");
+    const raw = input.value.trim();
+    $("manage-add-error").hidden = true;
+    if (!raw) {
+      input.focus();
+      return;
+    }
+    const src = manageImageUrl(raw);
+    if (!src) {
+      $("manage-add-error").textContent = "请填写 GitHub 图片地址：raw.githubusercontent.com 链接，或 github.com 的 raw / blob 链接。";
+      $("manage-add-error").hidden = false;
+      input.focus();
+      return;
+    }
+    if (manage.images.some(image => image.src === src)) {
+      $("manage-add-error").textContent = "这张图片已经在列表里。";
+      $("manage-add-error").hidden = false;
+      input.focus();
+      return;
+    }
+    if (manage.images.filter(image => image.isNew && image.kept).length >= 10) {
+      $("manage-add-error").textContent = "每次最多新增 10 张图片。";
+      $("manage-add-error").hidden = false;
+      input.focus();
+      return;
+    }
+    manage.images.push({ src, kept: true, isNew: true });
+    manage.cover = src;
+    input.value = "";
+    renderManage();
+    $("manage-add-image").focus();
+  }
+  function showManageStatus(message, url) {
+    $("manage-status-text").textContent = message;
+    $("manage-status-link").href = url;
+    $("manage-status").hidden = false;
+  }
+  function submitManage() {
+    const manage = state.manage;
+    if (!manage) return;
+    const kept = manage.images.filter(image => image.kept);
+    if (manage.cover && !kept.some(image => image.src === manage.cover)) {
+      showToast("封面必须在保留的图片中");
+      return;
+    }
+    const existing = kept.filter(image => !image.isNew).map(image => image.src);
+    const added = kept.filter(image => image.isNew).map(image => image.src);
+    const params = new URLSearchParams();
+    params.set("template", "edit-skill.yml");
+    params.set("skill_slug", manage.item.slug);
+    params.set("keep_images", existing.length ? existing.join("\n") : "无");
+    params.set("cover_url", manage.cover);
+    params.set("new_image_urls", added.join("\n"));
+    const url = state.catalog.repository_url + "/issues/new?" + params.toString();
+    showManageStatus("已尝试打开 GitHub 确认页。请检查图片列表，必要时在页面上传新图片，然后提交 Issue。", url);
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+  function askDelete() {
+    const manage = state.manage;
+    if (!manage) return;
+    $("manage-confirm-title").textContent = manage.item.title;
+    $("manage-confirm").hidden = false;
+    $("manage-delete").hidden = true;
+    $("manage-confirm").scrollIntoView({ block: "nearest" });
+    $("manage-delete-open").focus();
+  }
+  function cancelDelete() {
+    $("manage-confirm").hidden = true;
+    $("manage-delete").hidden = false;
+    $("manage-delete").focus();
+  }
+  function openDeleteIssue() {
+    const manage = state.manage;
+    if (!manage) return;
+    const params = new URLSearchParams();
+    params.set("template", "delete-skill.yml");
+    params.set("skill_slug", manage.item.slug);
+    params.set("skill_title", manage.item.title);
+    const url = state.catalog.repository_url + "/issues/new?" + params.toString();
+    showManageStatus("已尝试打开删除确认页。请在 GitHub 勾选确认并提交，Actions 执行后才会真正删除。", url);
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
   function bind() {
+    $("open-skill-import").addEventListener("click", openSkillImport);
+    $("close-skill-import").addEventListener("click", closeSkillImport);
+    $("skill-import-modal").addEventListener("click", event => {
+      if (event.target.dataset.importDismiss) closeSkillImport();
+    });
+    $("skill-repo-url").addEventListener("input", () => {
+      $("skill-repo-url").removeAttribute("aria-invalid");
+      $("skill-import-error").hidden = true;
+    });
     $("skill-import-form").addEventListener("submit", event => {
       event.preventDefault();
       const raw = $("skill-repo-url").value.trim();
-      let parsed;
       try {
-        parsed = new URL(raw);
+        const parsed = new URL(raw);
         const parts = parsed.pathname.split("/").filter(Boolean);
         if (parsed.protocol !== "https:" || parsed.hostname !== "github.com" || parts.length < 2 ||
             !parts.slice(0, 2).every(part => /^[a-zA-Z0-9_.-]+$/.test(part))) throw new Error("invalid");
       } catch {
-        showToast("请填写有效的 GitHub Skill 仓库或 SKILL.md 链接");
+        showImportError("请填写有效的 GitHub 仓库或 SKILL.md 链接");
         return;
       }
+      $("skill-repo-url").removeAttribute("aria-invalid");
+      $("skill-import-error").hidden = true;
       const base = "https://github.com/yuqiangdede/ai-image-prompt-library/issues/new";
       const url = base + "?template=add-skill.yml&skill_url=" + encodeURIComponent(raw);
+      $("skill-import-fallback").href = url;
+      $("skill-import-status-text").textContent = "已尝试打开 GitHub 确认页；如果没有自动打开，请用下面的链接继续。";
+      $("skill-import-status").hidden = false;
       window.open(url, "_blank", "noopener,noreferrer");
     });
+    $("manage-skill").addEventListener("click", openManage);
+    $("close-skill-manage").addEventListener("click", closeManage);
+    $("skill-manage-modal").addEventListener("click", event => {
+      if (event.target.dataset.manageDismiss) closeManage();
+    });
+    $("manage-images").addEventListener("change", event => {
+      const manage = state.manage;
+      if (!manage) return;
+      const keep = event.target.closest("[data-manage-keep]");
+      if (keep) {
+        const index = Number(keep.dataset.manageKeep);
+        manage.images[index].kept = keep.checked;
+        if (!keep.checked && manage.cover === manage.images[index].src) manage.cover = "";
+        renderManage();
+        manageFocus('[data-manage-keep="' + index + '"]');
+        return;
+      }
+      const cover = event.target.closest("[data-manage-cover]");
+      if (!cover) return;
+      const value = cover.dataset.manageCover;
+      manage.cover = value === "auto" ? "" : manage.images[Number(value)].src;
+      renderManage();
+      manageFocus(value === "auto" ? '[data-manage-cover="auto"]' : '[data-manage-cover="' + value + '"]');
+    });
+    $("manage-images").addEventListener("click", event => {
+      const button = event.target.closest("[data-manage-remove]");
+      if (!button || !state.manage) return;
+      const removed = state.manage.images.splice(Number(button.dataset.manageRemove), 1)[0];
+      if (removed && state.manage.cover === removed.src) state.manage.cover = "";
+      renderManage();
+      $("manage-add-image").focus();
+    });
+    $("manage-new-image").addEventListener("input", () => {
+      $("manage-add-error").hidden = true;
+    });
+    $("manage-new-image").addEventListener("keydown", event => {
+      if (event.key !== "Enter") return;
+      event.preventDefault();
+      addManageImage();
+    });
+    $("manage-add-image").addEventListener("click", addManageImage);
+    $("manage-submit").addEventListener("click", submitManage);
+    $("manage-delete").addEventListener("click", askDelete);
+    $("manage-delete-cancel").addEventListener("click", cancelDelete);
+    $("manage-delete-open").addEventListener("click", openDeleteIssue);
     $("nav-tabs").addEventListener("click", event => {
       const node = event.target.closest("[data-type]");
       if (!node) return;
       state.kind = node.dataset.type; render();
+    });
+    document.querySelectorAll(".view-switch").forEach(group => {
+      group.addEventListener("click", event => {
+        const node = event.target.closest("[data-view]");
+        if (!node || node.dataset.view === state.view) return;
+        state.view = node.dataset.view;
+        applyView(true);
+      });
     });
     $("category-nav").addEventListener("click", event => {
       const node = event.target.closest("[data-category]");
@@ -242,14 +526,20 @@
     });
     $("download-file").addEventListener("click", download);
     window.addEventListener("keydown", event => {
-      if (event.key === "Escape" && !$("detail-modal").hidden) closeItem();
-      if (event.key === "/" && $("detail-modal").hidden && document.activeElement.tagName !== "INPUT") {
+      if (event.key === "Escape") {
+        if (!$("skill-manage-modal").hidden) { closeManage(); return; }
+        if (!$("skill-import-modal").hidden) { closeSkillImport(); return; }
+        if (!$("detail-modal").hidden) closeItem();
+      }
+      if (event.key === "/" && $("detail-modal").hidden && $("skill-import-modal").hidden &&
+          $("skill-manage-modal").hidden && document.activeElement.tagName !== "INPUT") {
         event.preventDefault(); $("search").focus();
       }
     });
   }
   async function init() {
     bind();
+    applyView();
     try {
       const response = await fetch("./data/catalog.json", { cache: "no-store" });
       if (!response.ok) throw new Error("HTTP " + response.status);
