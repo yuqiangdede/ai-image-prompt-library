@@ -181,6 +181,23 @@
     link.remove();
   }
   function bind() {
+    $("skill-import-form").addEventListener("submit", event => {
+      event.preventDefault();
+      const raw = $("skill-repo-url").value.trim();
+      let parsed;
+      try {
+        parsed = new URL(raw);
+        const parts = parsed.pathname.split("/").filter(Boolean);
+        if (parsed.protocol !== "https:" || parsed.hostname !== "github.com" || parts.length < 2 ||
+            !parts.slice(0, 2).every(part => /^[a-zA-Z0-9_.-]+$/.test(part))) throw new Error("invalid");
+      } catch {
+        showToast("请填写有效的 GitHub Skill 仓库或 SKILL.md 链接");
+        return;
+      }
+      const base = "https://github.com/yuqiangdede/ai-image-prompt-library/issues/new";
+      const url = base + "?template=add-skill.yml&skill_url=" + encodeURIComponent(raw);
+      window.open(url, "_blank", "noopener,noreferrer");
+    });
     $("nav-tabs").addEventListener("click", event => {
       const node = event.target.closest("[data-type]");
       if (!node) return;

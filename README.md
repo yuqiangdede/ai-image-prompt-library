@@ -58,6 +58,21 @@ python -m http.server 8000 --directory dist
 - 如果账户/仓库的 GitHub Actions 工作流写入权限被关闭，需要在 Settings → Actions → General 允许写入。
 
 项目使用原生 HTML/CSS/JS 和 Python 标准库。
+## 只填 GitHub 原 Skill 地址，自动生成并发布
+
+首页新增“通过 GitHub 地址自动添加 Skill”入口。复制原作者仓库地址，点击“自动添加 Skill”；浏览器会打开 **GitHub Issue 表单**（自动填好地址），仓库所有者登录后点击提交，就会触发 GitHub Actions 自动添加并发布。
+
+自动识别公开仓库中的 SKILL.md、README 与 frontmatter；生成标题、简介、分类、标签、封面链接（如原仓库没有合适图片则用默认占位图）、安装命令、meta.json、upstream.json 和独立编写的 SKILL.md 索引。**不复制上游完整源代码、参考图或不明授权文件**。上游 SHA 每日自动更新。
+
+注意事项：
+- **需要在 GitHub 页面确认提交一次**：GitHub Pages 是静态网站，不能直接向仓库写入，也不应该在网页里保存个人 Token。
+- 为防止公开仓库被其他人恶意添加，只有所有者 `yuqiangdede` 提交且标题为 `[导入 Skill]` 的 Issue 能触发自动导入。
+- 原仓库有多个 `SKILL.md` 时，提供单个 Skill 文件的链接，否则会明确拒绝以防误导入。
+- 导入成功会在 Issue 中回复并自动关闭；失败则回复错误排查提示，可到 Actions 查看详细日志。
+- Skill 没有明确授权时只做 `link-only` 索引；复制安装命令仅适用于支持 Skills 的 Agent 环境，不会自动安装到 ChatGPT 网页。
+
+核心实现：`scripts/import_skill.py`、`.github/ISSUE_TEMPLATE/add-skill.yml`、`.github/workflows/pages.yml`。
+
 ## 手工添加 Skill（不用命令行）
 
 以“营造 Yingzao”为例，所有操作都可在 GitHub 网页完成：
