@@ -1,0 +1,18 @@
+{
+  "title": "Photo Relic Editorial / 纸上留影",
+  "description": "把真实照片压缩成一张安静的纸上记忆版画。",
+  "category": "平面设计 / 海报",
+  "tags": [
+    "海报",
+    "平面设计"
+  ],
+  "model": "ChatGPT",
+  "updated_at": "2026-11-12",
+  "cover": "https://raw.githubusercontent.com/wnby/photo-relic-editorial/main/examples/paper-beijing/geese-procession.png",
+  "images": [
+    "https://raw.githubusercontent.com/wnby/photo-relic-editorial/main/examples/paper-beijing/geese-procession.png"
+  ],
+  "related_skills": [],
+  "external_only": true,
+  "install_command": "npx skills add https://github.com/wnby/photo-relic-editorial --skill photo-relic-editorial"
+}
