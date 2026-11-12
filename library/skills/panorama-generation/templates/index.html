@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>360° 沉浸式全景</title>
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #0d1118; color: #f4f7fb; }
+    #viewport { position: fixed; inset: 0; overflow: hidden; }
+    #viewport canvas { width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+    #viewport canvas:active { cursor: grabbing; }
+    .overlay { position: fixed; z-index: 2; pointer-events: none; }
+    header { top: 0; right: 0; left: 0; padding: max(16px, env(safe-area-inset-top)) 18px 20px; background: linear-gradient(180deg,rgba(0,0,0,.7),transparent); display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+    .heading { max-width: min(56vw,540px); text-shadow: 0 1px 6px #0009; }
+    h1 { font-size: clamp(16px,2vw,22px); line-height: 1.4; margin: 0 0 4px; font-weight: 650; }
+    .hint { font-size: 12px; opacity: .84; line-height: 1.6; margin: 0; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; pointer-events: auto; }
+    button, .file-button { border: 1px solid #ffffff52; background: #111a29d9; color: #fff; font: inherit; font-size: 13px; padding: 9px 12px; line-height: 1.3; border-radius: 9px; cursor: pointer; white-space: nowrap; }
+    button:hover, .file-button:hover { background: #263954e6; }
+    button:focus-visible, .file-button:focus-within { outline: 2px solid #8bcaff; outline-offset: 3px; }
+    .file-button input { position: absolute; width: 1px; height: 1px; overflow: hidden; opacity: 0; }
+    #status { left: 16px; bottom: max(16px, env(safe-area-inset-bottom)); max-width: min(670px,calc(100vw - 32px)); padding: 9px 13px; background: #0d1523d9; border: 1px solid #ffffff34; border-radius: 9px; font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+    #status[data-error="true"] { background: #48202bdd; border-color: #ffb2b96e; }
+    #drop-tip { position: fixed; z-index: 4; inset: 18px; display: none; align-items: center; justify-content: center; border: 2px dashed #9ac7ff; background: #08182ae8; border-radius: 16px; font-weight: 600; font-size: 20px; pointer-events: none; }
+    body.dragging #drop-tip { display: flex; }
+    @media (max-width: 680px) {
+      header { display: block; padding: max(12px, env(safe-area-inset-top)) 12px 24px; }
+      .heading { max-width: 100%; }
+      .hint { font-size: 11px; }
+      .actions { justify-content: flex-start; margin-top: 10px; gap: 7px; }
+      button, .file-button { font-size: 12px; padding: 8px 10px; }
+      #status { font-size: 11px; left: 12px; bottom: max(12px,env(safe-area-inset-bottom)); max-width: calc(100vw - 24px); }
+    }
+  </style>
+</head>
+<body>
+  <main id="viewport" aria-label="360 度交互全景视图"></main>
+  <header class="overlay">
+    <div class="heading">
+      <h1 id="scene-title">360° 沉浸式全景</h1>
+      <p class="hint">拖动环视 · 滚轮/双指缩放 · 可选择或拖入本地全景图</p>
+    </div>
+    <div class="actions">
+      <label class="file-button">选择全景图<input id="file" type="file" accept="image/png,image/jpeg,image/webp"></label>
+      <button id="reset" type="button">复位视角</button>
+      <button id="fullscreen" type="button">全屏</button>
+    </div>
+  </header>
+  <div id="status" class="overlay" role="status" aria-live="polite">正在初始化 Three.js…</div>
+  <div id="drop-tip">松开以加载全景图</div>
+
+  <script type="module">
+    // 生图交付时通常只需要修改下面三个值。全景图片应和 index.html 放在同一目录。
+    const DEFAULT_PANORAMA = './panorama.jpg';
+    const DEFAULT_YAW_DEG = 0;
+    const DEFAULT_PITCH_DEG = 0;
+    const THREE_CDN = 'https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js';
+    // 完全离线部署：将 THREE_CDN 改为 './vendor/three.module.js' 并把对应文件一起打包。
+
+    const viewport = document.getElementById('viewport');
+    const status = document.getElementById('status');
+    const fileInput = document.getElementById('file');
+    const resetButton = document.getElementById('reset');
+    const fullscreenButton = document.getElementById('fullscreen');
+
+    function setStatus(message, error = false) {
+      status.textContent = message;
+      status.dataset.error = String(error);
+    }
+
+    let THREE;
+    try {
+      THREE = await import(THREE_CDN);
+    } catch (error) {
+      setStatus('无法加载 Three.js。请检查网络与 CDN，或按 README 使用本地 three.module.js。' + (error?.message ? ` ${error.message}` : ''), true);
+      throw error;
+    }
+
+    let renderer;
+    try {
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
+    } catch (error) {
+      setStatus('WebGL 初始化失败。请启用浏览器硬件加速，或更换支持 WebGL 的浏览器。', true);
+      throw error;
+    }
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(viewport.clientWidth, viewport.clientHeight);
+    viewport.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, viewport.clientWidth / Math.max(1, viewport.clientHeight), 0.1, 1100);
+    camera.position.set(0, 0, 0);
+    const geometry = new THREE.SphereGeometry(500, 72, 48);
+    // 内表面可见。此处仅是固定中心的 3DoF 球面全景，不是可移动的真实几何重建。
+    const material = new THREE.MeshBasicMaterial({ side: THREE.BackSide, color: 0xffffff });
+    scene.add(new THREE.Mesh(geometry, material));
+
+    let yaw = DEFAULT_YAW_DEG;
+    let pitch = DEFAULT_PITCH_DEG;
+    const points = new Map();
+    let pinchDistance = null;
+    let activeObjectURL = null;
+    const direction = new THREE.Vector3();
+
+    const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
+    function updateCamera() {
+      const phi = THREE.MathUtils.degToRad(90 - clamp(pitch, -85, 85));
+      const theta = THREE.MathUtils.degToRad(yaw);
+      direction.set(500 * Math.sin(phi) * Math.cos(theta), 500 * Math.cos(phi), 500 * Math.sin(phi) * Math.sin(theta));
+      camera.lookAt(direction);
+    }
+    function setFov(next) {
+      camera.fov = clamp(next, 35, 95);
+      camera.updateProjectionMatrix();
+    }
+    function distanceOfTwoPointers() {
+      const [a, b] = [...points.values()];
+      return Math.hypot(a.x - b.x, a.y - b.y);
+    }
+    const canvas = renderer.domElement;
+    canvas.addEventListener('pointerdown', (event) => {
+      if (event.pointerType === 'mouse' && event.button !== 0) return;
+      canvas.setPointerCapture(event.pointerId);
+      points.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      pinchDistance = points.size >= 2 ? distanceOfTwoPointers() : null;
+    });
+    canvas.addEventListener('pointermove', (event) => {
+      const prev = points.get(event.pointerId);
+      if (!prev) return;
+      points.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      if (points.size === 1) {
+        yaw -= (event.clientX - prev.x) * 0.13;
+        pitch += (event.clientY - prev.y) * 0.13;
+        pitch = clamp(pitch, -85, 85);
+      } else if (points.size >= 2) {
+        const distance = distanceOfTwoPointers();
+        if (pinchDistance !== null) setFov(camera.fov - (distance - pinchDistance) * 0.10);
+        pinchDistance = distance;
+      }
+    });
+    const release = (event) => {
+      points.delete(event.pointerId);
+      pinchDistance = points.size >= 2 ? distanceOfTwoPointers() : null;
+      if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+    };
+    canvas.addEventListener('pointerup', release);
+    canvas.addEventListener('pointercancel', release);
+    canvas.addEventListener('lostpointercapture', (event) => {
+      points.delete(event.pointerId);
+      pinchDistance = null;
+    });
+    canvas.addEventListener('wheel', (event) => {
+      event.preventDefault();
+      setFov(camera.fov + event.deltaY * 0.035);
+    }, { passive: false });
+    canvas.addEventListener('contextmenu', (event) => event.preventDefault());
+
+    resetButton.addEventListener('click', () => {
+      yaw = DEFAULT_YAW_DEG;
+      pitch = DEFAULT_PITCH_DEG;
+      setFov(75);
+    });
+    fullscreenButton.addEventListener('click', async () => {
+      try {
+        if (document.fullscreenElement) await document.exitFullscreen();
+        else if (document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
+        else setStatus('当前浏览器不支持全屏 API。', true);
+      } catch (error) {
+        setStatus(`切换全屏失败：${error.message}`, true);
+      }
+    });
+    document.addEventListener('fullscreenchange', () => {
+      fullscreenButton.textContent = document.fullscreenElement ? '退出全屏' : '全屏';
+    });
+
+    function resize() {
+      const width = Math.max(1, viewport.clientWidth);
+      const height = Math.max(1, viewport.clientHeight);
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height);
+    }
+    window.addEventListener('resize', resize);
+    renderer.setAnimationLoop(() => {
+      updateCamera();
+      renderer.render(scene, camera);
+    });
+
+    async function loadPanorama(url, filename, objectURL = null) {
+      setStatus(`正在加载 ${filename}…`);
+      const image = new Image();
+      image.decoding = 'async';
+      try {
+        await new Promise((resolve, reject) => {
+          image.onload = resolve;
+          image.onerror = () => reject(new Error('图片不存在、文件损坏或不允许读取'));
+          image.src = url;
+        });
+        const width = image.naturalWidth;
+        const height = image.naturalHeight;
+        if (!width || !height || Math.abs(width / height - 2) > 0.01) {
+          throw new Error(`图片尺寸 ${width}×${height} 不是 2:1。请先生成真正的等距柱状全景图。`);
+        }
+        const maxTexture = renderer.capabilities.maxTextureSize;
+        const isMobile = window.matchMedia('(max-width: 680px)').matches;
+        const safeSize = Math.min(maxTexture, isMobile ? 4096 : 8192);
+        let textureSource = image;
+        let message = `已加载 ${filename}（${width}×${height}）。拖动或触屏环视，滚轮/双指缩放。`;
+        if (width > safeSize || height > safeSize) {
+          const factor = Math.min(safeSize / width, safeSize / height);
+          const buffer = document.createElement('canvas');
+          buffer.width = Math.max(2, Math.floor(width * factor / 2) * 2);
+          buffer.height = Math.max(1, Math.floor(height * factor));
+          const ctx = buffer.getContext('2d');
+          if (!ctx) throw new Error('浏览器无法缩放超大纹理');
+          ctx.drawImage(image, 0, 0, buffer.width, buffer.height);
+          textureSource = buffer;
+          message += ` 为保护显存已降至 ${buffer.width}×${buffer.height}。`;
+        }
+        const texture = new THREE.Texture(textureSource);
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy());
+        texture.needsUpdate = true;
+        const previousTexture = material.map;
+        material.map = texture;
+        material.needsUpdate = true;
+        if (previousTexture) previousTexture.dispose();
+        if (activeObjectURL) URL.revokeObjectURL(activeObjectURL);
+        activeObjectURL = objectURL;
+        setStatus(message);
+      } catch (error) {
+        if (objectURL) URL.revokeObjectURL(objectURL);
+        setStatus(`无法加载 ${filename}：${error.message}。可点击“选择全景图”或将 2:1 全景拖入页面。`, true);
+      }
+    }
+
+    function loadLocalFile(file) {
+      if (!file) return;
+      if (!file.type.startsWith('image/')) {
+        setStatus('请选择 JPG、PNG 或 WebP 全景图。', true);
+        return;
+      }
+      const url = URL.createObjectURL(file);
+      void loadPanorama(url, file.name, url);
+    }
+    fileInput.addEventListener('change', () => {
+      loadLocalFile(fileInput.files?.[0]);
+      fileInput.value = '';
+    });
+    let dragDepth = 0;
+    window.addEventListener('dragenter', (event) => {
+      if (!event.dataTransfer?.types.includes('Files')) return;
+      event.preventDefault();
+      dragDepth += 1;
+      document.body.classList.add('dragging');
+    });
+    window.addEventListener('dragover', (event) => {
+      if (event.dataTransfer?.types.includes('Files')) event.preventDefault();
+    });
+    window.addEventListener('dragleave', (event) => {
+      event.preventDefault();
+      dragDepth = Math.max(0, dragDepth - 1);
+      if (!dragDepth) document.body.classList.remove('dragging');
+    });
+    window.addEventListener('drop', (event) => {
+      event.preventDefault();
+      dragDepth = 0;
+      document.body.classList.remove('dragging');
+      loadLocalFile(event.dataTransfer?.files?.[0]);
+    });
+
+    void loadPanorama(DEFAULT_PANORAMA, DEFAULT_PANORAMA);
+  </script>
+</body>
+</html>

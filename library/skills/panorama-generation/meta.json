@@ -1,0 +1,21 @@
+{
+  "title": "360° 全景生成 · 场景直达 Three.js",
+  "description": "只需描述场景、上传普通参考图或现成全景图，即可生成 360° 等距柱状全景，并制作支持电脑和手机环视、缩放与全屏的 Three.js 网页。封面为天坛祈年殿全景效果 GIF。",
+  "category": "3D / 全景交互",
+  "tags": [
+    "360° 全景",
+    "场景生图",
+    "参考图扩展",
+    "Three.js",
+    "WebGL",
+    "沉浸式网页",
+    "移动端交互"
+  ],
+  "model": "ChatGPT",
+  "updated_at": "2026-11-12",
+  "cover": "images/cover.gif",
+  "images": [
+    "images/cover.gif"
+  ],
+  "related_skills": []
+}
