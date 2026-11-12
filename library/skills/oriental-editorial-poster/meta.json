@@ -1,0 +1,20 @@
+{
+  "title": "东方文化编辑海报 · 文字与材质创意",
+  "description": "以中国文化物证、中文标题和材质细节创作东方编辑海报，支持 A/B/C 风格试验、批量关键词测试。",
+  "category": "平面设计 / 海报",
+  "tags": [
+    "东方美学",
+    "文化海报",
+    "中文字体",
+    "字体实验",
+    "A/B/C测试"
+  ],
+  "model": "ChatGPT",
+  "updated_at": "2026-11-12",
+  "cover": "https://raw.githubusercontent.com/dacnay816y62-hub/fantasy-dongfang-jianyuehaibao/main/v2-tests/selected-triptychs/selected-overview.jpg",
+  "images": [
+    "https://raw.githubusercontent.com/dacnay816y62-hub/fantasy-dongfang-jianyuehaibao/main/v2-tests/selected-triptychs/selected-overview.jpg"
+  ],
+  "related_skills": [],
+  "install_command": "npx skills add https://github.com/dacnay816y62-hub/fantasy-dongfang-jianyuehaibao --skill oriental-editorial-poster"
+}

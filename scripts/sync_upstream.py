@@ -71,6 +71,56 @@ def sync(folder):
         path.write_text(json.dumps(conf, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         print(f"{folder.name}: upstream link updated ({sha[:12]}); no source files mirrored")
         return True
+    if mode == "approved-text-mirror":
+        # User-confirmed redistribution permission; retain upstream license notices.
+        # Only mirror text, config and scripts; never execute upstream code or copy art.
+        allowed_roots = ("SKILL.md", "README.md", "LICENSE", "LICENSE.md", "COMMERCIAL.md")
+        allowed_dirs = ("agents", "references", "scripts")
+        allowed_ext = EXTENSIONS | {".toml", ".sh", ".js", ".ts"}
+        with tempfile.TemporaryDirectory() as tmp:
+            upstream = Path(tmp) / "upstream"
+            subprocess.run([
+                "git", "clone", "--depth", "1", "--filter=blob:none", "--sparse",
+                "--single-branch", "--branch", branch, url + ".git", str(upstream)
+            ], check=True)
+            subprocess.run(["git", "-C", str(upstream), "sparse-checkout", "set", *allowed_dirs], check=True)
+            sha = git("-C", str(upstream), "rev-parse", "HEAD")
+            if sha == conf.get("sha"):
+                print(f"{folder.name}: already current ({sha[:12]})")
+                return False
+            if not (upstream / "SKILL.md").is_file():
+                raise ValueError(f"{folder.name}: upstream SKILL.md missing")
+            for filename in allowed_roots:
+                src, dst = upstream / filename, folder / filename
+                if src.is_symlink():
+                    raise ValueError(f"Symlink rejected: {src}")
+                if src.is_file():
+                    if src.stat().st_size > MAX_SIZE:
+                        raise ValueError(f"File too large: {src}")
+                    shutil.copy2(src, dst)
+                elif dst.exists():
+                    dst.unlink()
+            for dirname in allowed_dirs:
+                src, dst = upstream / dirname, folder / dirname
+                if dst.exists():
+                    shutil.rmtree(dst)
+                if not src.is_dir():
+                    continue
+                for file in src.rglob("*"):
+                    if file.is_symlink():
+                        raise ValueError(f"Symlink rejected: {file}")
+                    if not file.is_file() or file.suffix.lower() not in allowed_ext:
+                        continue
+                    if file.stat().st_size > MAX_SIZE:
+                        raise ValueError(f"File too large: {file}")
+                    output = dst / file.relative_to(src)
+                    output.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(file, output)
+            conf["sha"] = sha
+            conf["last_synced"] = date.today().isoformat()
+            path.write_text(json.dumps(conf, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            print(f"{folder.name}: synced approved upstream text ({sha[:12]}); artwork excluded")
+            return True
     if mode != "allowlisted-mit-text":
         raise ValueError(f"{folder.name}: unsupported sync mode {mode}")
     with tempfile.TemporaryDirectory() as tmp:

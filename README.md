@@ -93,3 +93,13 @@ python -m http.server 8000 --directory dist
 - `library/skills/yingzao/upstream.json`：上游链接与每日 Commit 跟踪
 
 该上游暂未发现明确的根目录 `LICENSE`，因此采用 `link-only`，而不是复制上游的参考图、Python 脚本或完整指令。
+
+## 补充收录：3 个视觉 Skills
+
+已按用户确认的复制许可收录：
+
+- [XXD Panel 115](https://github.com/nevertoday/xxd-panel-115)：照片→粉彩章印拼贴；PolyForm Noncommercial，商业使用须单独许可。
+- [Photo Abstract Editorial](https://github.com/ZzzLc0405/photo-abstract-editorial)：照片→抽象编辑海报；原作者限制非商业用途。
+- [东方文化编辑海报](https://github.com/dacnay816y62-hub/fantasy-dongfang-jianyuehaibao)：文化物证与中文字形设计；以授权方条件为准。
+
+每个条目保存上游地址及自动更新配置（`approved-text-mirror`），首次构建由 GitHub Actions 同步完整规则和引用到的文本脚本；示例图片采用原仓库外链，不下载复制，避免仓库膨胀。自动同步不执行第三方脚本。

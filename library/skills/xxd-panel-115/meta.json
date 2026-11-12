@@ -1,0 +1,21 @@
+{
+  "title": "XXD Panel 115 · 复古粉彩章印拼贴",
+  "description": "照片变成复古纸张上的粉笔蜡笔涂鸦、粉彩拼贴和手账海报；支持图片对照、壁纸与批量处理。原作者要求非商业使用。",
+  "category": "摄影再设计 / 拼贴",
+  "tags": [
+    "照片二创",
+    "粉彩手账",
+    "蜡笔质感",
+    "复古纸张",
+    "图片对照"
+  ],
+  "model": "ChatGPT",
+  "updated_at": "2026-11-12",
+  "cover": "https://raw.githubusercontent.com/nevertoday/xxd-panel-115/main/assets/examples/sample-09.png",
+  "images": [
+    "https://raw.githubusercontent.com/nevertoday/xxd-panel-115/main/assets/examples/sample-09.png",
+    "https://raw.githubusercontent.com/nevertoday/xxd-panel-115/main/assets/examples/sample-10.png"
+  ],
+  "related_skills": [],
+  "install_command": "npx skills add https://github.com/nevertoday/xxd-panel-115 --skill xxd-panel-115"
+}

@@ -1,0 +1,21 @@
+{
+  "title": "Photo Abstract Editorial · 摄影抽象编辑",
+  "description": "原始摄影与照片派生的极简抽象视觉面板组成纵向海报，并附诗意英文标题。原作者限定非商业用途。",
+  "category": "摄影再设计 / 拼贴",
+  "tags": [
+    "摄影抽象",
+    "极简海报",
+    "编辑设计",
+    "空间关系",
+    "照片对照"
+  ],
+  "model": "ChatGPT",
+  "updated_at": "2026-11-12",
+  "cover": "https://raw.githubusercontent.com/ZzzLc0405/photo-abstract-editorial/main/assets/examples/case-10.jpg",
+  "images": [
+    "https://raw.githubusercontent.com/ZzzLc0405/photo-abstract-editorial/main/assets/examples/case-10.jpg",
+    "https://raw.githubusercontent.com/ZzzLc0405/photo-abstract-editorial/main/assets/examples/case-3.jpg"
+  ],
+  "related_skills": [],
+  "install_command": "npx skills add https://github.com/ZzzLc0405/photo-abstract-editorial --skill photo-abstract-editorial"
+}
