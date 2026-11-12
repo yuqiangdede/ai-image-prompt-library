@@ -1,0 +1,17 @@
+name: 通过原始地址添加 Skill
+description: 只填 GitHub Skill 地址，其余内容由 GitHub Actions 自动生成。
+title: "[导入 Skill] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        仅支持公开的 GitHub 仓库。若仓库有多个 Skill，请提供具体 SKILL.md 的文件链接。
+        只有仓库所有者提交的 Issue 才会自动导入。完成后自动回复并关闭。
+  - type: input
+    id: skill_url
+    attributes:
+      label: 原 Skill GitHub 地址
+      description: 支持仓库、Skill 子目录或 SKILL.md 文件链接
+      placeholder: "https://github.com/作者/skill-仓库"
+    validations:
+      required: true
