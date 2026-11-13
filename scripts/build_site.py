@@ -21,7 +21,7 @@ def img_path(path, folder):
     if not isinstance(path, str) or not path:
         raise ValueError(f"Invalid image path in {folder}")
     if path.startswith("https://"):
-        if urlparse(path).hostname not in ("raw.githubusercontent.com", "github.com"):
+        if urlparse(path).hostname not in ("raw.githubusercontent.com", "github.com", "hand-drawn-images.pages.dev"):
             raise ValueError(f"Unapproved image URL: {path}")
         return path
     p = (folder / path).resolve()
