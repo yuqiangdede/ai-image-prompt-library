@@ -1,0 +1,25 @@
+{
+  "title": "Hand Drawn Styles｜23 套手绘与插画画风",
+  "description": "23 套手绘与插画提示词配方，覆盖蜡笔童涂、水墨写意、吉卜力风、像素、纸雕、绘本与皮影；按画风编号生成完整 Prompt 或带参考图的调用包。完整功能需安装上游 Skill。",
+  "category": "插画 / 手绘",
+  "tags": [
+    "手绘插画",
+    "23套画风",
+    "蜡笔",
+    "水墨",
+    "绘本",
+    "纸雕",
+    "皮影",
+    "风格转换"
+  ],
+  "model": "ChatGPT",
+  "updated_at": "2026-11-13",
+  "cover": "https://raw.githubusercontent.com/threerocks/hand-drawn-styles/main/assets/style-3.1/anchor-family.png",
+  "images": [
+    "https://raw.githubusercontent.com/threerocks/hand-drawn-styles/main/assets/style-3.1/anchor-family.png",
+    "https://raw.githubusercontent.com/threerocks/hand-drawn-styles/main/assets/style-22/anchor.png"
+  ],
+  "related_skills": [],
+  "external_only": true,
+  "install_command": "npx skills add https://github.com/threerocks/hand-drawn-styles --skill hand-drawn"
+}
