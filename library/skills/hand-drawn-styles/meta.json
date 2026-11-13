@@ -14,10 +14,12 @@
   ],
   "model": "ChatGPT",
   "updated_at": "2026-11-13",
-  "cover": "https://raw.githubusercontent.com/threerocks/hand-drawn-styles/main/assets/style-3.1/anchor-family.png",
+  "cover": "https://hand-drawn-images.pages.dev/hand-drawn/examples/02-crayon.png",
   "images": [
-    "https://raw.githubusercontent.com/threerocks/hand-drawn-styles/main/assets/style-3.1/anchor-family.png",
-    "https://raw.githubusercontent.com/threerocks/hand-drawn-styles/main/assets/style-22/anchor.png"
+    "https://hand-drawn-images.pages.dev/hand-drawn/examples/02-crayon.png",
+    "https://hand-drawn-images.pages.dev/hand-drawn/examples/08-ink-wash.png",
+    "https://hand-drawn-images.pages.dev/hand-drawn/examples/03-ghibli.png",
+    "https://hand-drawn-images.pages.dev/hand-drawn/examples/09-pixel-art.png"
   ],
   "related_skills": [],
   "external_only": true,
