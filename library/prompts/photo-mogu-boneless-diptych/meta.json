@@ -1,0 +1,21 @@
+{
+  "title": "实景照片 × 中国画没骨法双联海报",
+  "description": "上半部保留真实摄影，下半部以没骨设色、撞水撞粉和宣纸肌理提炼原照片主体；3:4竖版、上下严格等高、边角小品与大量留白。",
+  "category": "摄影再设计 / 拼贴",
+  "tags": [
+    "没骨法",
+    "撞水撞粉",
+    "摄影再设计",
+    "东方美学",
+    "宣纸设色",
+    "二联海报",
+    "3:4竖版"
+  ],
+  "model": "ChatGPT",
+  "updated_at": "2026-11-14",
+  "cover": "images/cover.webp",
+  "images": [
+    "images/cover.webp"
+  ],
+  "related_skills": []
+}
