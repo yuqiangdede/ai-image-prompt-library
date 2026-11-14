@@ -3,6 +3,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from scripts import manage_skill as manager
 
@@ -87,6 +88,44 @@ class ManageGalleryItemTests(unittest.TestCase):
             ["library/prompts/sample/images/one.webp"],
         )
         self.assertEqual(manager.text_refs("```text\n无\n```"), ["无"])
+
+    def test_local_image_selected_as_second_upload_cover(self):
+        folder = self.make_item("prompt")
+        sections = {
+            "保留的现有图片": "library/prompts/sample/images/one.webp",
+            "封面图片地址": "upload:2",
+            "本地图片上传数量": "2",
+            "上传新图片": (
+                "![first](https://github.com/user-attachments/assets/first-123)\n"
+                "![second](https://github.com/user-attachments/assets/second-456)"
+            ),
+        }
+        first = b"\x89PNG\r\n\x1a\nfirst-image"
+        second = b"\xff\xd8\xffsecond-image"
+        with patch.object(manager, "fetch_upload", side_effect=[first, second]):
+            manager.edit_images(sections, "sample", "prompt")
+        meta = self.read_meta(folder)
+        self.assertEqual(len(meta["images"]), 3)
+        self.assertEqual(meta["cover"], meta["images"][2])
+        self.assertTrue((folder / meta["cover"]).is_file())
+
+    def test_missing_staged_local_file_rejected_before_download(self):
+        self.make_item("skill")
+        with self.assertRaisesRegex(ValueError, "实际上传 0 张"):
+            manager.edit_images({
+                "本地图片上传数量": "1",
+                "封面图片地址": "upload:1",
+            }, "sample", "skill")
+
+    def test_out_of_range_local_cover_rejected(self):
+        self.make_item("skill")
+        with patch.object(manager, "fetch_upload", return_value=b"\x89PNG\r\n\x1a\nimage"):
+            with self.assertRaisesRegex(ValueError, "指定的本地封面不存在"):
+                manager.edit_images({
+                    "本地图片上传数量": "1",
+                    "上传新图片": "![img](https://github.com/user-attachments/assets/one-1)",
+                    "封面图片地址": "upload:2",
+                }, "sample", "skill")
 
     def test_kind_mismatch_rejected(self):
         self.make_item("prompt")

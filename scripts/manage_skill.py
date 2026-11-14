@@ -37,6 +37,7 @@ LABELS = {
     "cover": "封面图片地址",
     "urls": "新增图片地址",
     "files": "上传新图片",
+    "upload_count": "本地图片上传数量",
     "confirm": "确认",
 }
 
@@ -307,6 +308,16 @@ def edit_images(sections, slug, kind="skill"):
                 if ref.lower() not in ("无", "none")]
     files_text = section_value(sections, LABELS["files"])
     upload_urls = attachment_urls(files_text)
+    expected_text = section_value(sections, LABELS["upload_count"])
+    if expected_text:
+        if not re.fullmatch(r"\d{1,2}", expected_text):
+            raise ValueError("本地图片上传数量无效")
+        expected_count = int(expected_text)
+        if expected_count != len(upload_urls):
+            raise ValueError(
+                "本地预选 {} 张图片，但 GitHub 实际上传 {} 张；请返回确认页重新上传全部图片"
+                .format(expected_count, len(upload_urls))
+            )
     if files_text and not upload_urls:
         raise ValueError("未能识别上传的图片，请重新提交或在「新增图片地址」中填写图片链接")
     if len(new_refs) + len(upload_urls) > MAX_NEW_IMAGES:
@@ -329,8 +340,15 @@ def edit_images(sections, slug, kind="skill"):
     cover_refs = text_refs(section_value(sections, LABELS["cover"]))
     cover = ""
     if cover_refs:
-        cover = normalize_ref(cover_refs[0], slug, folder)
-        cover = upload_map.get(cover, cover)
+        selected_cover = cover_refs[0]
+        if selected_cover.startswith("upload:"):
+            match = re.fullmatch(r"upload:([1-9]\d*)", selected_cover)
+            if not match or int(match.group(1)) > len(upload_urls):
+                raise ValueError("指定的本地封面不存在，请在 GitHub 上传预选的全部图片")
+            cover = upload_map[upload_urls[int(match.group(1)) - 1]]
+        else:
+            cover = normalize_ref(selected_cover, slug, folder)
+            cover = upload_map.get(cover, cover)
         if cover not in final:
             raise ValueError("封面必须是保留或新增的图片之一")
     if not cover and added:

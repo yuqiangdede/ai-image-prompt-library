@@ -114,6 +114,17 @@
         <div id="manage-images" class="manage-images"></div>
         <p id="manage-summary" class="manage-summary" role="status"></p>
       </section>
+      <section class="manage-section" aria-labelledby="manage-local-heading">
+        <div class="manage-section-head"><h3 id="manage-local-heading">选择本地图片</h3><p>先预览、选择封面，再到 GitHub 确认上传。</p></div>
+        <label id="manage-local-drop" class="manage-local-picker" for="manage-local-images">
+          <span>＋ 选择图片，或拖放到这里</span>
+          <small>支持 PNG / JPG / WebP / GIF · 单张 ≤ 8 MB · 每次最多新增 10 张</small>
+        </label>
+        <input id="manage-local-images" class="manage-local-input" type="file" accept=".png,.jpg,.jpeg,.webp,.gif,image/png,image/jpeg,image/webp,image/gif" multiple aria-describedby="manage-local-help manage-local-error">
+        <p id="manage-local-error" class="import-error" role="alert" hidden></p>
+        <p id="manage-local-help" class="manage-help">这里选择的图片只用于本地预览，尚未上传到服务器。点击下方「在 GitHub 确认修改」后，必须在 GitHub 表单「上传新图片」重新选取同样的文件，才能保存到图库。</p>
+        <p id="manage-local-upload-guide" class="manage-local-guide" aria-live="polite" hidden></p>
+      </section>
       <section class="manage-section" aria-labelledby="manage-add-heading">
         <label id="manage-add-heading" for="manage-new-image">新增图片地址</label>
         <div class="manage-add-row">
@@ -121,7 +132,7 @@
           <button id="manage-add-image" type="button">添加</button>
         </div>
         <p id="manage-add-error" class="import-error" role="alert" hidden></p>
-        <p class="manage-help">也可在下一步打开的 GitHub 页面直接上传手机或电脑里的图片：PNG / JPG / WebP / GIF，单张不超过 8 MB，每次最多 10 张。若希望稍后上传的图片作封面，请先选「新增图片优先作封面」。</p>
+        <p class="manage-help">图片链接与本地选择可以同时使用。如果直接到 GitHub 表单上传图片而未在这里选图，可选择「新增图片优先作封面」。</p>
       </section>
       <div id="manage-status" class="import-status" role="status" aria-live="polite" hidden>
         <p id="manage-status-text"></p>

@@ -173,3 +173,12 @@
 .modal-top .detail-edit-button:hover{background:#42664e}
 .modal-top #close-modal{display:grid;place-items:center;flex:0 0 34px;min-width:34px;padding:0}
 @media(max-width:600px){.modal-top{gap:8px}.detail-top-actions{gap:6px}.modal-top .detail-edit-button{min-width:92px;height:36px;padding:0 9px;font-size:11px}.card-actions{gap:4px}.card-edit-button{padding:0 9px}}
+
+/* Local image staging in the shared editor (no client-side repository credentials). */
+.manage-local-picker{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:6px;min-height:98px;margin-top:12px;border:1px dashed #a8bba5;border-radius:9px;background:#f8faf6;color:#294735;text-align:center;cursor:pointer;font-size:13px;font-weight:800}
+.manage-local-picker:hover,.manage-local-picker.is-dragging,.manage-local-picker:focus-within{border-color:#41684b;background:#edf5eb}
+.manage-local-picker small{font-size:11px;color:#60735e;font-weight:500}
+.manage-local-input{position:absolute;width:1px;height:1px;padding:0;margin:0;opacity:0;overflow:hidden;clip-path:inset(50%)}
+.manage-local-input:focus-visible+.manage-local-error{outline:2px solid #41684b}
+.manage-local-guide{margin:10px 0 0;padding:10px 12px;background:#f4f7f0;border:1px solid #e2e9d9;border-radius:7px;color:#304d39;font-size:11px;line-height:1.7;white-space:pre-line;overflow-wrap:anywhere}
+.manage-image-name{padding:5px 8px;color:#4b5e4d;font-size:10px;line-height:1.4;overflow-wrap:anywhere}

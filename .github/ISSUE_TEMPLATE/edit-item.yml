@@ -65,7 +65,7 @@ body:
     id: cover_url
     attributes:
       label: 封面图片地址
-      description: 默认显示的封面，必须属于保留或新增的图片；留空时优先使用新增图。
+      description: 默认封面可填保留/新增图片地址，或编辑页自动生成的 upload:1、upload:2（表示第几张本地上传图片）。
     validations:
       required: false
   - type: textarea
@@ -73,6 +73,22 @@ body:
     attributes:
       label: 新增图片地址
       description: 每行一个 GitHub 图片链接；可直接在下方上传图片。
+      render: text
+    validations:
+      required: false
+  - type: input
+    id: upload_count
+    attributes:
+      label: 本地图片上传数量
+      description: 编辑页自动填写。若填写 N，则必须在下方上传相同数量的图片，否则会拒绝保存。
+      placeholder: "0"
+    validations:
+      required: false
+  - type: textarea
+    id: upload_list
+    attributes:
+      label: 本地图片上传清单（按顺序）
+      description: 如果编辑页预选了本地图片，请按照此清单的顺序在下方重新选择图片；本地封面按上传顺序确定。
       render: text
     validations:
       required: false
