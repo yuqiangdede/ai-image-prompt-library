@@ -1,0 +1,23 @@
+{
+  "title": "战场突击｜电影画面转九宫格铅笔分镜",
+  "description": "上传战场电影剧照或动作参考照片，将单幅画面拓展为具有连续叙事的九宫格黑白铅笔分镜脚本，包含景别、机位、运镜和时长标注；同时收录原图与分镜效果双封面。",
+  "category": "分镜设计 / 铅笔草图",
+  "tags": [
+    "电影分镜",
+    "九宫格",
+    "铅笔草图",
+    "手绘素描",
+    "战场突击",
+    "镜头语言",
+    "影视概念设计",
+    "双封面"
+  ],
+  "model": "GPT 图像生成",
+  "updated_at": "2026-11-14",
+  "cover": "images/storyboard-cover.avif",
+  "images": [
+    "images/storyboard-cover.avif",
+    "images/war-photo-cover.avif"
+  ],
+  "related_skills": []
+}
