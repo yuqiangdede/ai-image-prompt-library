@@ -14,9 +14,9 @@
   ],
   "model": "GPT 图像生成",
   "updated_at": "2026-11-14",
-  "cover": "images/cover.webp",
+  "cover": "images/cover.svg",
   "images": [
-    "images/cover.webp"
+    "images/cover.svg"
   ],
   "related_skills": []
 }
