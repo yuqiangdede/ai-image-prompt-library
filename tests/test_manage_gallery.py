@@ -63,6 +63,39 @@ class ManageGalleryItemTests(unittest.TestCase):
         self.assertEqual(result["cover"], "images/two.webp")
         self.assertEqual(result["images"], ["images/one.webp", "images/two.webp"])
 
+    def test_existing_avif_cover_can_be_retained_and_selected(self):
+        """Regression for issue #3: AVIF can be kept as the only visible image."""
+        folder = self.make_item("prompt")
+        (folder / "images" / "cover.avif").write_bytes(b"existing-avif-image")
+        meta = self.read_meta(folder)
+        meta["cover"] = "images/cover.avif"
+        meta["images"] = ["images/cover.avif", "images/one.webp"]
+        manager.write_meta(folder, meta)
+
+        manager.edit_images({
+            "保留的现有图片": "library/prompts/sample/images/cover.avif",
+            "封面图片地址": "library/prompts/sample/images/cover.avif",
+            "标题（显示名称）": "AVIF 电影肖像",
+        }, "sample", "prompt")
+        result = self.read_meta(folder)
+        self.assertEqual(result["title"], "AVIF 电影肖像")
+        self.assertEqual(result["images"], ["images/cover.avif"])
+        self.assertEqual(result["cover"], "images/cover.avif")
+
+    def test_metadata_only_edit_preserves_existing_avif(self):
+        """The default keep-all behavior must not drop supported AVIF images."""
+        folder = self.make_item("prompt")
+        (folder / "images" / "cover.avif").write_bytes(b"existing-avif-image")
+        meta = self.read_meta(folder)
+        meta["cover"] = "images/cover.avif"
+        meta["images"] = ["images/cover.avif", "images/one.webp"]
+        manager.write_meta(folder, meta)
+
+        manager.edit_images({"标题（显示名称）": "更新标题"}, "sample", "prompt")
+        result = self.read_meta(folder)
+        self.assertEqual(result["images"], ["images/cover.avif", "images/one.webp"])
+        self.assertEqual(result["cover"], "images/cover.avif")
+
     def test_legacy_skill_image_editor_does_not_change_metadata(self):
         folder = self.make_item("skill")
         manager.edit_images({
