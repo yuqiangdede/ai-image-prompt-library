@@ -1,0 +1,26 @@
+{
+  "title": "同一人物四姿态黑白艺术肖像｜影棚编辑摄影",
+  "description": "基于同一成年人物参考照生成四张身份、服装、影调一致的黑白影棚人像，分别为正面直视、3/4 侧脸、低头沉思和微抬头侧光；灰白渐变背景、柔和定向光及细腻胶片颗粒。",
+  "category": "人像摄影 / 黑白艺术",
+  "tags": [
+    "黑白人像",
+    "四姿态",
+    "人物一致性",
+    "编辑类摄影",
+    "胶片颗粒",
+    "灰阶",
+    "柔和侧光",
+    "极简影棚",
+    "4:5"
+  ],
+  "model": "GPT 图像生成",
+  "updated_at": "2026-11-14",
+  "cover": "images/01-front.webp",
+  "images": [
+    "images/01-front.webp",
+    "images/02-three-quarter.webp",
+    "images/03-looking-down.webp",
+    "images/04-head-raised.webp"
+  ],
+  "related_skills": []
+}
