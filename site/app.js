@@ -91,9 +91,7 @@
         '"><div class="image-wrap">' + image + '<span class="image-label">' + typeName(item) +
         '</span></div><div class="card-details"><h3>' + escapeHtml(item.title) + '</h3><p>' + escapeHtml(item.description) +
         '</p></div></button>' + coverControls + '<div class="card-foot"><div class="chips">' + chips + '</div>' +
-        '<div class="card-actions"><button type="button" class="card-edit-button" data-edit="' + escapeHtml(item.id) +
-        '" aria-label="编辑「' + escapeHtml(item.title) + '」的标题、标签和封面">✎ 编辑</button>' +
-        '<button class="favorite-button ' + (fav ? "active" : "") + '" data-fav="' + escapeHtml(item.id) +
+        '<div class="card-actions"><button class="favorite-button ' + (fav ? "active" : "") + '" data-fav="' + escapeHtml(item.id) +
         '" aria-label="' + (fav ? "取消收藏" : "收藏") + '">' + (fav ? "♥" : "♡") + '</button></div></div></article>';
     }).join("");
   }
@@ -148,7 +146,6 @@
       : item.kind === "skill"
       ? "ZIP 保留 Skill 配套文本、设计配置与脚本；上游有版权限制的参考图片不在 ZIP 内。复制文本不会自动安装 Skill。"
       : "复制后可以直接粘贴到 ChatGPT 图片生成对话。";
-    $("manage-box").hidden = false;
     $("open-source").href = externalSkill ? item.source_url : state.catalog.repository_url + "/blob/main/" + item.content_path.split("/").map(encodeURIComponent).join("/");
     $("open-source").textContent = externalSkill ? "到原项目查看完整 Skill ↗" : "在 GitHub 中打开 ↗";
     $("detail-modal").hidden = false;
@@ -637,7 +634,6 @@
           : "提示词正文较长，未能自动复制。请从上面的输入框复制正文，粘贴到 GitHub 页面的「提示词正文」后再提交。";
       }
     });
-    $("manage-skill").addEventListener("click", () => openManage());
     $("detail-edit").addEventListener("click", () => openManage());
     $("close-skill-manage").addEventListener("click", closeManage);
     $("skill-manage-modal").addEventListener("click", event => {
@@ -717,12 +713,6 @@
       state.kind = "all"; state.category = "all"; state.search = ""; $("search").value = ""; render();
     });
     $("gallery").addEventListener("click", event => {
-      const edit = event.target.closest("[data-edit]");
-      if (edit) {
-        const item = state.items.find(x => x.id === edit.dataset.edit);
-        if (item) openManage(item);
-        return;
-      }
       const slide = event.target.closest("[data-slide]");
       if (slide) {
         const card = slide.closest(".gallery-card");
