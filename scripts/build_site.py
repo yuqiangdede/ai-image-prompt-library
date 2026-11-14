@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Build static prompt / Skill gallery. Python standard library only."""
+import hashlib
 import json
 import os
 import re
@@ -59,10 +60,23 @@ def make_item(folder, kind):
         "install_command": meta.get("install_command", ""),
     }
 
+def version_frontend_assets(index_path):
+    """Fingerprint CSS/JS URLs so browsers do not retain outdated layouts."""
+    html = index_path.read_text(encoding="utf-8")
+    for filename, attribute in (("app.css", "href"), ("app.js", "src")):
+        marker = f'{attribute}="./{filename}"'
+        if html.count(marker) != 1:
+            raise ValueError(f"Expected exactly one static asset reference: {marker}")
+        digest = hashlib.sha256((index_path.parent / filename).read_bytes()).hexdigest()[:12]
+        html = html.replace(marker, f'{attribute}="./{filename}?v={digest}"', 1)
+    index_path.write_text(html, encoding="utf-8")
+
+
 def build():
     if DIST.exists():
         shutil.rmtree(DIST)
     shutil.copytree(SITE, DIST)
+    version_frontend_assets(DIST / "index.html")
     shutil.copytree(LIBRARY, DIST / "library")
     (DIST / "data").mkdir(exist_ok=True)
     (DIST / "downloads" / "skills").mkdir(parents=True, exist_ok=True)
