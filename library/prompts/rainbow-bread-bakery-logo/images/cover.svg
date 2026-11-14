@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" role="img" aria-labelledby="title desc">
+  <title id="title">彩虹面包 Logo</title>
+  <desc id="desc">暖色彩虹与烘焙面包结合的原创扁平化透明背景标志</desc>
+  <g fill="none" stroke-linecap="round">
+    <path d="M 225 416 C 247 207 753 207 775 416" stroke="#BC624A" stroke-width="48"/>
+    <path d="M 285 402 C 315 267 685 267 715 402" stroke="#EDB950" stroke-width="43"/>
+    <path d="M 350 394 C 373 333 627 333 650 394" stroke="#8A9C65" stroke-width="39"/>
+  </g>
+  <path fill="#BC7638" d="M 194 538 C 194 483 231 449 295 442 C 321 415 371 409 409 423 C 465 398 536 398 589 423 C 632 407 681 418 708 445 C 771 452 807 488 807 544 C 807 591 764 613 704 613 L 299 613 C 232 613 194 590 194 538 Z"/>
+  <g fill="#F7E6C7">
+    <path d="M 364 458 Q 392 424 432 422 Q 399 457 381 505 Q 363 514 353 495 Q 353 476 364 458 Z"/>
+    <path d="M 489 432 Q 521 421 557 429 Q 524 464 508 511 Q 491 522 480 503 Q 482 459 489 432 Z"/>
+    <path d="M 613 448 Q 646 435 678 447 Q 643 480 633 518 Q 615 525 603 506 Q 604 470 613 448 Z"/>
+  </g>
+  <text x="500" y="777" text-anchor="middle" fill="#703B22" font-family="'Noto Sans CJK SC','Microsoft YaHei','PingFang SC',sans-serif" font-size="112" font-weight="800" letter-spacing="6">彩虹面包</text>
+</svg>
