@@ -21,7 +21,7 @@ EDIT_TITLE = "[修改素材]"
 LEGACY_EDIT_TITLE = "[修改图片]"
 DELETE_TITLE = "[删除 Skill]"
 
-IMAGE_EXTENSIONS = (".jpg", ".jpeg", ".png", ".webp", ".gif", ".svg")
+IMAGE_EXTENSIONS = (".jpg", ".jpeg", ".png", ".webp", ".gif", ".svg", ".avif")
 MAX_IMAGE_BYTES = 8_000_000
 MAX_TOTAL_BYTES = 32_000_000
 MAX_NEW_IMAGES = 10

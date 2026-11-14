@@ -20,8 +20,7 @@
   "updated_at": "2026-11-14",
   "cover": "images/cover.avif",
   "images": [
-    "images/cover.avif",
-    "images/cover.svg"
+    "images/cover.avif"
   ],
   "related_skills": []
 }
