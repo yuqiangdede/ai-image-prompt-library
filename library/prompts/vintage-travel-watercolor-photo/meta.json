@@ -1,0 +1,20 @@
+{
+  "title": "复古旅行水彩照片转绘｜清透手绘与旅行记忆",
+  "description": "保留原图人物身份、动作、场景关系和拍摄视角，将纪实旅行照片转绘成暖米白与低饱和色调的清透复古水彩画。",
+  "category": "摄影转绘",
+  "tags": [
+    "水彩",
+    "复古旅行",
+    "照片转绘",
+    "手绘插画",
+    "旅行记忆",
+    "主体一致性"
+  ],
+  "model": "ChatGPT",
+  "updated_at": "2026-11-14",
+  "cover": "images/cover.svg",
+  "images": [
+    "images/cover.svg"
+  ],
+  "related_skills": []
+}
