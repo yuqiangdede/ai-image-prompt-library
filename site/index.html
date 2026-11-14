@@ -63,7 +63,7 @@
           <div id="source-box" class="source-box" hidden><span>UPSTREAM SOURCE</span><a id="upstream-link" href="#" target="_blank" rel="noopener">查看原始 Skill ↗</a><code id="upstream-sha"></code></div>
           <div class="action-stack"><button id="copy-primary" class="primary-action">复制完整内容</button><div class="secondary-actions"><button id="copy-text">仅复制原文</button><button id="download-file">下载文件</button></div></div>
           <p id="detail-note" class="detail-note"></p>
-          <div id="manage-box" class="manage-box" hidden><div><span class="manage-box-kicker">SKILL MANAGEMENT</span><p>封面或效果图不对？可以修改图片，或把整个 Skill 从图库移除。</p></div><button id="manage-skill" type="button" aria-haspopup="dialog" aria-controls="skill-manage-modal">管理</button></div>
+          <div id="manage-box" class="manage-box" hidden><div><span class="manage-box-kicker">GALLERY MANAGEMENT</span><p>修改标题、标签、封面和效果图，支持多封面轮换。</p></p></div><button id="manage-skill" type="button" aria-haspopup="dialog" aria-controls="skill-manage-modal">管理</button></div>
           <div id="detail-related" class="related"></div>
           <div class="content-box"><div class="content-head"><h3 id="content-heading">完整内容</h3><a id="open-source" target="_blank" rel="noopener">在 GitHub 中打开 ↗</a></div><pre id="detail-content"></pre></div>
         </div>
@@ -96,12 +96,21 @@
     <div class="modal-backdrop" data-manage-dismiss="1"></div>
     <section class="manage-panel" role="dialog" aria-modal="true" aria-labelledby="manage-title" aria-describedby="manage-desc">
       <div class="manage-panel-top">
-        <div><p class="manage-kicker">SKILL MANAGEMENT</p><h2 id="manage-title">管理 Skill</h2></div>
+        <div><p class="manage-kicker">GALLERY MANAGEMENT</p><h2 id="manage-title">管理素材</h2></div>
         <button id="close-skill-manage" class="manage-close" type="button" aria-label="关闭管理面板">✕</button>
       </div>
       <p id="manage-desc" class="manage-desc"></p>
+      <section class="manage-section" aria-labelledby="manage-info-heading">
+        <div class="manage-section-head"><h3 id="manage-info-heading">基本信息</h3><p>修改后通过 GitHub Issue 提交，经仓库所有者确认生效。</p></div>
+        <div class="manage-fields">
+          <label for="manage-item-title">标题<input id="manage-item-title" type="text" maxlength="80" required></label>
+          <label for="manage-item-category">分类<input id="manage-item-category" type="text" maxlength="40" required></label>
+          <label class="manage-field-wide" for="manage-item-description">简介<textarea id="manage-item-description" maxlength="300" rows="3" required></textarea></label>
+          <label class="manage-field-wide" for="manage-item-tags">标签（用逗号分隔）<input id="manage-item-tags" type="text" placeholder="插画, 俯视地图, 游戏美术"></label>
+        </div>
+      </section>
       <section class="manage-section" aria-labelledby="manage-images-heading">
-        <div class="manage-section-head"><h3 id="manage-images-heading">图片</h3><p>勾选要保留的图片；取消勾选的图片不再出现在图库中。</p></div>
+        <div class="manage-section-head"><h3 id="manage-images-heading">图片</h3><p>所有保留的图片均可在图库卡片轮换展示；选择其中一张作为默认封面。</p></div>
         <div id="manage-images" class="manage-images"></div>
         <p id="manage-summary" class="manage-summary" role="status"></p>
       </section>
@@ -120,9 +129,9 @@
       </div>
       <div class="manage-actions">
         <button id="manage-submit" class="primary-action" type="button">在 GitHub 确认修改 ↗</button>
-        <a id="manage-edit-meta" class="manage-edit-link" target="_blank" rel="noopener">编辑标题与简介 ↗</a>
+        <a id="manage-edit-meta" class="manage-edit-link" target="_blank" rel="noopener">在 GitHub 编辑 JSON ↗</a>
       </div>
-      <section class="manage-danger" aria-labelledby="manage-danger-heading">
+      <section id="manage-danger-section" class="manage-danger" aria-labelledby="manage-danger-heading">
         <div><h3 id="manage-danger-heading">删除此 Skill</h3><p>会移除整个 Skill 目录和关联入口；如果只是图片不对，请先修改图片。</p></div>
         <button id="manage-delete" type="button">删除…</button>
       </section>

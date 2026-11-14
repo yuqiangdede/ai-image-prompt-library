@@ -6,7 +6,7 @@
 - **添加提示词**：图库右上角填写提示词和封面，经 GitHub Issue 确认后自动写入并发布。
 - **上游关联**：Skill 可绑定原始 GitHub 仓库，展示作者、来源地址、同步 Commit。
 - **自动同步**：GitHub Actions 每天检查并同步允许再分发的上游 Skill 文本、配置与脚本；保留本地 `meta.json` 和封面设置。
-- **管理**：带上游来源的 Skill 可在详情页换封面、增删效果图或删除条目；改动经 GitHub Issue 确认后由 Actions 自动提交。
+- **管理**：所有 Prompt / Skill 均可在详情页编辑标题、简介、分类、标签、主封面和效果图；一条素材可有多张可切换封面。改动由仓库所有者在 GitHub Issue 确认后自动提交。带上游来源的 Skill 仍可删除。
 - **来源与版权**：上游图片许可可能不同于 Skill 文本许可；默认不镜像第三方参考图片。本站示例的斑马封面直接引用上游官方图片地址。
 
 ## 在线地址
@@ -93,6 +93,18 @@ python -m http.server 8000 --directory dist
 - 成功后 Issue 自动回复并关闭；失败会回复排查提示，详细原因见 Actions 日志。
 
 核心实现：`scripts/add_prompt.py`、`.github/ISSUE_TEMPLATE/add-prompt.yml`、`.github/workflows/pages.yml`、`site/app.js` 的添加提示词面板。
+
+## 修改 Prompt / Skill 信息和多封面
+
+每个 Prompt / Skill 详情页均可点击「管理」打开统一编辑面板：
+
+- **基本信息**：直接在网页填写标题、简介、分类、标签；目录标识（slug）不受标题更改影响。
+- **多封面**：一个条目的 `images` 保存多张作品图，`cover` 指定默认展示的主封面。图库卡片右上角可用左右箭头轮换查看全部保留图片，详情页也有缩略图切换。
+- **替换图片**：勾选要保留的图，添加 GitHub 图片链接或在确认页直接上传 PNG/JPG/WebP/GIF（单张 ≤ 8 MB，每次新增最多 10 张），再任选保留图作主封面。
+- **确认发布**：点击「在 GitHub 确认修改」打开 `.github/ISSUE_TEMPLATE/edit-item.yml`，只有仓库所有者提交的「[修改素材]」Issue 才会触发 `scripts/manage_skill.py` 更新 `meta.json` 并部署 Pages。
+- **兼容性**：旧的「[修改图片]」Skill Issue 仍能处理，原有图片链接与素材 ID 保持不变。Prompt 不开放「删除 Skill」按钮。
+
+### 旧版 Skill 图片管理说明
 
 ## 修改图片或删除已收录的 Skill
 

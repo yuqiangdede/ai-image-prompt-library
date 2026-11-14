@@ -1,0 +1,94 @@
+name: 修改素材信息与图片
+description: 修改 Prompt / Skill 的标题、简介、分类、标签、图片及默认封面，由仓库所有者确认后自动更新。
+title: "[修改素材] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        从图库详情页「管理」打开时，各字段会自动填写当前内容。
+        提交前请核对，只有仓库所有者提交的 Issue 才会触发自动修改。
+        图片会发布到公开仓库，请勿上传私人内容或未经授权的图片。
+  - type: dropdown
+    id: item_kind
+    attributes:
+      label: 素材类型
+      options:
+        - prompt
+        - skill
+    validations:
+      required: true
+  - type: input
+    id: item_slug
+    attributes:
+      label: 素材标识（slug）
+      description: 必须填写当前目录名，不是标题，改标题不改变目录标识。
+      placeholder: arknights-style-city-tactical-overview-map
+    validations:
+      required: true
+  - type: input
+    id: item_title
+    attributes:
+      label: 标题（显示名称）
+      description: 最多 80 个字符。
+    validations:
+      required: true
+  - type: textarea
+    id: item_description
+    attributes:
+      label: 简介
+      description: 最多 300 个字符。
+    validations:
+      required: true
+  - type: input
+    id: item_category
+    attributes:
+      label: 分类
+      description: 最多 40 个字符。
+    validations:
+      required: true
+  - type: input
+    id: item_tags
+    attributes:
+      label: 标签（逗号分隔）
+      description: 多个标签以逗号或中文逗号分隔；可以清空，最多 24 个、每个不超过 30 字。
+    validations:
+      required: false
+  - type: textarea
+    id: keep_images
+    attributes:
+      label: 保留的现有图片
+      description: 每行一个地址。保留的图片会成为图库中的多封面候选；填「无」表示全部移除，留空默认全部保留。
+      placeholder: "library/prompts/example/images/cover.webp"
+      render: text
+    validations:
+      required: false
+  - type: input
+    id: cover_url
+    attributes:
+      label: 封面图片地址
+      description: 默认显示的封面，必须属于保留或新增的图片；留空时优先使用新增图。
+    validations:
+      required: false
+  - type: textarea
+    id: new_image_urls
+    attributes:
+      label: 新增图片地址
+      description: 每行一个 GitHub 图片链接；可直接在下方上传图片。
+      render: text
+    validations:
+      required: false
+  - type: upload
+    id: new_images
+    attributes:
+      label: 上传新图片
+      description: PNG、JPG、WebP、GIF；单张不超过 8 MB，本次新增最多 10 张。
+    validations:
+      required: false
+      accept: ".png,.jpg,.jpeg,.webp,.gif"
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: 确认
+      options:
+        - label: 我确认更新上述素材信息和图片，并了解修改将在公开图库中展示
+          required: true

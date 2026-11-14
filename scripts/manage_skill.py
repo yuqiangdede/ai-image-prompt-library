@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Apply gallery image changes or delete a Skill from an owner's GitHub Issue."""
+"""Apply gallery metadata/image changes or delete a Skill from an owner's GitHub Issue."""
 import hashlib
 import json
 import os
@@ -17,7 +17,8 @@ PROMPTS = ROOT / "library" / "prompts"
 REPO = os.environ.get("GITHUB_REPOSITORY", "yuqiangdede/ai-image-prompt-library")
 USER_AGENT = "ai-image-prompt-library"
 
-EDIT_TITLE = "[修改图片]"
+EDIT_TITLE = "[修改素材]"
+LEGACY_EDIT_TITLE = "[修改图片]"
 DELETE_TITLE = "[删除 Skill]"
 
 IMAGE_EXTENSIONS = (".jpg", ".jpeg", ".png", ".webp", ".gif", ".svg")
@@ -26,7 +27,12 @@ MAX_TOTAL_BYTES = 32_000_000
 MAX_NEW_IMAGES = 10
 
 LABELS = {
-    "slug": "Skill 标识",
+    "slug": "素材标识（slug）",
+    "kind": "素材类型",
+    "title": "标题（显示名称）",
+    "description": "简介",
+    "category": "分类",
+    "tags": "标签（逗号分隔）",
     "keep": "保留的现有图片",
     "cover": "封面图片地址",
     "urls": "新增图片地址",
@@ -157,16 +163,23 @@ def check_linked_image(url):
         raise ValueError("图片地址返回的不是图片：{}".format(url))
 
 
-def skill_folder(slug):
+def item_folder(slug, kind="skill"):
     slug = (slug or "").strip()
     if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", slug):
-        raise ValueError("Skill 标识无效：{}（只允许小写字母、数字和连字符）".format(slug or "空"))
-    folder = (SKILLS / slug).resolve()
-    if folder.parent != SKILLS.resolve() or not folder.is_dir():
-        raise ValueError("图库中不存在该 Skill：" + slug)
+        raise ValueError("素材标识无效：{}（只允许小写字母、数字和连字符）".format(slug or "空"))
+    if kind not in ("skill", "prompt"):
+        raise ValueError("未知素材类型：" + kind)
+    base = SKILLS if kind == "skill" else PROMPTS
+    folder = (base / slug).resolve()
+    if folder.parent != base.resolve() or not folder.is_dir():
+        raise ValueError("图库中不存在 {}：{}".format(kind, slug))
     if not (folder / "meta.json").is_file():
-        raise ValueError("Skill 缺少 meta.json：" + slug)
+        raise ValueError("素材缺少 meta.json：" + slug)
     return folder
+
+
+def skill_folder(slug):
+    return item_folder(slug, "skill")
 
 
 def load_meta(folder):
@@ -190,7 +203,7 @@ def normalize_ref(ref, slug, folder):
         return linked
     if ref.startswith(("http://", "data:", "//")):
         raise ValueError("只支持 HTTPS 图片地址：" + ref)
-    prefix = "library/skills/{}/".format(slug)
+    prefix = "library/{}/{}/".format(folder.parent.name, slug)
     if ref.startswith(prefix):
         ref = ref[len(prefix):]
     if ref.startswith("./"):
@@ -209,7 +222,7 @@ def save_upload(folder, url):
     digest = hashlib.sha256(data).hexdigest()[:16]
     images_dir = folder / "images"
     if images_dir.is_symlink():
-        raise ValueError("Skill 的 images 目录是符号链接，已拒绝写入")
+        raise ValueError("素材的 images 目录是符号链接，已拒绝写入")
     target = images_dir / ("upload-" + digest + extension)
     if not target.exists():
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -229,8 +242,36 @@ def keep_all_refs(meta, slug, folder):
     return refs
 
 
-def edit_images(sections, slug):
-    folder = skill_folder(slug)
+def edit_metadata(sections, meta):
+    """Only update metadata fields present in the new edit form."""
+    for field, maximum in (("title", 80), ("description", 300), ("category", 40)):
+        label = LABELS[field]
+        if not any(heading.startswith(label) for heading in sections):
+            continue
+        value = re.sub(r"\s+", " ", section_value(sections, label)).strip()
+        if not value:
+            raise ValueError("请填写" + label)
+        if len(value) > maximum:
+            raise ValueError("{}不能超过 {} 字".format(label, maximum))
+        meta[field] = value
+    if any(heading.startswith(LABELS["tags"]) for heading in sections):
+        raw_tags = section_value(sections, LABELS["tags"])
+        tags = []
+        for raw in re.split(r"[,，、\n]+", raw_tags):
+            tag = raw.strip().lstrip("#").strip()
+            if not tag:
+                continue
+            if len(tag) > 30:
+                raise ValueError("单个标签不能超过 30 字")
+            if tag not in tags:
+                tags.append(tag)
+        if len(tags) > 24:
+            raise ValueError("标签最多 24 个")
+        meta["tags"] = tags
+
+
+def edit_images(sections, slug, kind="skill"):
+    folder = item_folder(slug, kind)
     meta = load_meta(folder)
 
     keep_text = section_value(sections, LABELS["keep"])
@@ -301,6 +342,7 @@ def edit_images(sections, slug):
 
     meta["images"] = final
     meta["cover"] = cover
+    edit_metadata(sections, meta)
     meta["updated_at"] = date.today().isoformat()
     write_meta(folder, meta)
     print("Updated {}: {} images, cover={}".format(slug, len(final), cover or "(none)"))
@@ -340,20 +382,23 @@ def issue_request():
         raise PermissionError("仅允许仓库所有者提交管理任务")
     title = (issue.get("title") or "").strip()
     sections = parse_sections(issue.get("body") or "")
-    slug_text = section_value(sections, LABELS["slug"])
+    slug_text = section_value(sections, LABELS["slug"]) or section_value(sections, "Skill 标识")
     slug = slug_text.splitlines()[0].strip().strip("`").strip() if slug_text else ""
     if not slug:
-        for prefix in (EDIT_TITLE, DELETE_TITLE):
+        for prefix in (EDIT_TITLE, LEGACY_EDIT_TITLE, DELETE_TITLE):
             if title.startswith(prefix):
                 slug = title[len(prefix):].strip()
                 break
-    return title, sections, slug
+    kind = section_value(sections, LABELS["kind"]).strip().lower() or "skill"
+    if kind not in ("skill", "prompt"):
+        raise ValueError("素材类型只能是 skill 或 prompt")
+    return title, sections, slug, kind
 
 
 def main():
-    title, sections, slug = issue_request()
-    if title.startswith(EDIT_TITLE):
-        edit_images(sections, slug)
+    title, sections, slug, kind = issue_request()
+    if title.startswith(EDIT_TITLE) or title.startswith(LEGACY_EDIT_TITLE):
+        edit_images(sections, slug, kind)
     elif title.startswith(DELETE_TITLE):
         delete_skill(sections, slug)
     else:

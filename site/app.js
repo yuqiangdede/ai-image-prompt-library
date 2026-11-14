@@ -75,23 +75,22 @@
       return;
     }
     $("gallery").innerHTML = results.map(item => {
-      const stackedImages = item.cover_layout === "stacked" && (item.images || []).length >= 2
-        ? item.images.slice(0, 2) : [];
-      const image = stackedImages.length === 2
-        ? '<div class="cover-stack">' + stackedImages.map((src, index) =>
-            '<div class="cover-stack-panel"><img loading="lazy" src="' + escapeHtml(address(src)) +
-            '" alt="' + escapeHtml(item.title + (index === 0 ? " 生成效果图" : " 地图参考图")) +
-            '"><span class="cover-stack-label">' + (index === 0 ? "生成效果" : "地图原图") +
-            '</span></div>').join("") + '</div>'
-        : item.cover
-        ? '<img loading="lazy" src="' + escapeHtml(address(item.cover)) + '" alt="' + escapeHtml(item.title) + ' 效果图">'
+      const coverSources = [...new Set([item.cover, ...(item.images || [])].filter(Boolean))];
+      const image = coverSources.length
+        ? '<img loading="lazy" src="' + escapeHtml(address(coverSources[0])) + '" alt="' + escapeHtml(item.title) + ' 效果图">'
         : '<span class="image-fallback">✳</span>';
+      const coverControls = coverSources.length > 1
+        ? '<div class="card-carousel-controls" aria-label="切换封面">' +
+          '<button type="button" data-slide="-1" aria-label="上一张封面">‹</button>' +
+          '<span class="card-carousel-counter" aria-live="polite">1 / ' + coverSources.length + '</span>' +
+          '<button type="button" data-slide="1" aria-label="下一张封面">›</button></div>'
+        : '';
       const chips = (item.tags || []).slice(0, 2).map(tag => '<span class="chip">' + escapeHtml(tag) + "</span>").join("");
       const fav = state.favorites.has(item.id);
-      return '<article class="gallery-card"><button class="gallery-card-open" type="button" data-open="' + escapeHtml(item.id) +
+      return '<article class="gallery-card" data-item-id="' + escapeHtml(item.id) + '" data-cover-index="0"><button class="gallery-card-open" type="button" data-open="' + escapeHtml(item.id) +
         '"><div class="image-wrap">' + image + '<span class="image-label">' + typeName(item) +
         '</span></div><div class="card-details"><h3>' + escapeHtml(item.title) + '</h3><p>' + escapeHtml(item.description) +
-        '</p></div></button><div class="card-foot"><div class="chips">' + chips + '</div><button class="favorite-button ' +
+        '</p></div></button>' + coverControls + '<div class="card-foot"><div class="chips">' + chips + '</div><button class="favorite-button ' +
         (fav ? "active" : "") + '" data-fav="' + escapeHtml(item.id) + '" aria-label="' + (fav ? "取消收藏" : "收藏") +
         '">' + (fav ? "♥" : "♡") + "</button></div></article>";
     }).join("");
@@ -147,7 +146,7 @@
       : item.kind === "skill"
       ? "ZIP 保留 Skill 配套文本、设计配置与脚本；上游有版权限制的参考图片不在 ZIP 内。复制文本不会自动安装 Skill。"
       : "复制后可以直接粘贴到 ChatGPT 图片生成对话。";
-    $("manage-box").hidden = !(item.kind === "skill" && (item.upstream_linked === true || item.source_url));
+    $("manage-box").hidden = false;
     $("open-source").href = externalSkill ? item.source_url : state.catalog.repository_url + "/blob/main/" + item.content_path.split("/").map(encodeURIComponent).join("/");
     $("open-source").textContent = externalSkill ? "到原项目查看完整 Skill ↗" : "在 GitHub 中打开 ↗";
     $("detail-modal").hidden = false;
@@ -351,13 +350,19 @@
     if (item.cover) add(item.cover);
     state.manage = { item, images, cover: item.cover || (images[0] && images[0].src) || "" };
     $("manage-title").textContent = "管理「" + item.title + "」";
-    $("manage-desc").textContent = "调整封面和效果图，或从图库移除这个 Skill。修改会先生成 GitHub Issue；只有仓库所有者提交的 Issue 会被 Actions 自动处理。";
+    $("manage-desc").textContent = "修改标题、简介、分类、标签和多张封面。提交后在 GitHub Issue 中核对确认，由 Actions 更新图库。";
+    $("manage-item-title").value = item.title || "";
+    $("manage-item-description").value = item.description || "";
+    $("manage-item-category").value = item.category || "";
+    $("manage-item-tags").value = (item.tags || []).join(", ");
+    $("manage-danger-section").hidden = item.kind !== "skill";
     $("manage-new-image").value = "";
     $("manage-add-error").hidden = true;
     $("manage-status").hidden = true;
     $("manage-confirm").hidden = true;
     $("manage-delete").hidden = false;
-    $("manage-edit-meta").href = state.catalog.repository_url + "/blob/main/library/skills/" +
+    $("manage-edit-meta").href = state.catalog.repository_url + "/edit/main/library/" +
+      (item.kind === "skill" ? "skills" : "prompts") + "/" +
       encodeURIComponent(item.slug) + "/meta.json";
     renderManage();
     $("skill-manage-modal").hidden = false;
@@ -419,11 +424,23 @@
       showToast("封面必须在保留的图片中");
       return;
     }
+    const title = $("manage-item-title").value.trim();
+    const description = $("manage-item-description").value.trim();
+    const category = $("manage-item-category").value.trim();
+    const tags = $("manage-item-tags").value.split(/[,，、\n]+/).map(x => x.trim().replace(/^#/, "")).filter(Boolean);
+    if (!title || !description || !category) return showToast("标题、简介和分类不能为空");
+    if (title.length > 80 || description.length > 300 || category.length > 40) return showToast("基础信息超过长度限制");
+    if (tags.length > 24 || tags.some(tag => tag.length > 30)) return showToast("标签最多 24 个，每个不超过 30 字");
     const existing = kept.filter(image => !image.isNew).map(image => image.src);
     const added = kept.filter(image => image.isNew).map(image => image.src);
     const params = new URLSearchParams();
-    params.set("template", "edit-skill.yml");
-    params.set("skill_slug", manage.item.slug);
+    params.set("template", "edit-item.yml");
+    params.set("item_kind", manage.item.kind);
+    params.set("item_slug", manage.item.slug);
+    params.set("item_title", title);
+    params.set("item_description", description);
+    params.set("item_category", category);
+    params.set("item_tags", [...new Set(tags)].join(", "));
     params.set("keep_images", existing.length ? existing.join("\n") : "无");
     params.set("cover_url", manage.cover);
     params.set("new_image_urls", added.join("\n"));
@@ -630,6 +647,21 @@
       state.kind = "all"; state.category = "all"; state.search = ""; $("search").value = ""; render();
     });
     $("gallery").addEventListener("click", event => {
+      const slide = event.target.closest("[data-slide]");
+      if (slide) {
+        const card = slide.closest(".gallery-card");
+        const item = state.items.find(x => x.id === card?.dataset.itemId);
+        if (!card || !item) return;
+        const images = [...new Set([item.cover, ...(item.images || [])].filter(Boolean))];
+        if (images.length < 2) return;
+        const next = (Number(card.dataset.coverIndex || 0) + Number(slide.dataset.slide) + images.length) % images.length;
+        card.dataset.coverIndex = String(next);
+        const preview = card.querySelector(".image-wrap img");
+        if (preview) preview.src = address(images[next]);
+        const counter = card.querySelector(".card-carousel-counter");
+        if (counter) counter.textContent = (next + 1) + " / " + images.length;
+        return;
+      }
       const fav = event.target.closest("[data-fav]");
       if (fav) {
         if (state.favorites.has(fav.dataset.fav)) state.favorites.delete(fav.dataset.fav);

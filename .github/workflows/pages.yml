@@ -32,6 +32,7 @@ jobs:
       (github.event.issue.user.login == github.repository_owner &&
         (startsWith(github.event.issue.title, '[导入 Skill]') ||
          startsWith(github.event.issue.title, '[添加提示词]') ||
+         startsWith(github.event.issue.title, '[修改素材]') ||
          startsWith(github.event.issue.title, '[修改图片]') ||
          startsWith(github.event.issue.title, '[删除 Skill]')))
     runs-on: ubuntu-latest
@@ -76,6 +77,7 @@ jobs:
           assert normalize_prompt("a\r\nb") == "a\nb\n"
           PY
           node --check site/app.js
+          python -m unittest discover -s tests -p 'test_manage_gallery.py' -v
       - name: Import public Skill from owner issue
         id: import_skill
         if: github.event_name == 'issues' && startsWith(github.event.issue.title, '[导入 Skill]')
@@ -98,14 +100,14 @@ jobs:
             git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "feat(prompts): add from issue #${{ github.event.issue.number }}"
             git push origin HEAD:main
           fi
-      - name: Apply image change or deletion from owner issue
+      - name: Apply gallery metadata, image changes or deletion from owner issue
         id: manage_skill
-        if: github.event_name == 'issues' && (startsWith(github.event.issue.title, '[修改图片]') || startsWith(github.event.issue.title, '[删除 Skill]'))
+        if: github.event_name == 'issues' && (startsWith(github.event.issue.title, '[修改素材]') || startsWith(github.event.issue.title, '[修改图片]') || startsWith(github.event.issue.title, '[删除 Skill]'))
         run: |
           python scripts/manage_skill.py
           git add library
           if ! git diff --cached --quiet; then
-            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "chore(skills): apply owner request #${{ github.event.issue.number }}"
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "chore(gallery): apply owner request #${{ github.event.issue.number }}"
             git push origin HEAD:main
           fi
       - name: Synchronize allowlisted upstream files
@@ -138,6 +140,7 @@ jobs:
           case "$ISSUE_TITLE" in
             "[导入 Skill]"*) HINT="请检查仓库是否公开、是否包含 SKILL.md；包含多个 Skill 时请提供具体文件链接。";;
             "[添加提示词]"*) HINT="请检查标题、简介、分类、提示词正文和封面是否填写完整；封面需要 GitHub 图片地址或上传文件。修正后可重新从图库提交一次，详细原因见 Actions 日志。";;
+            "[修改素材]"*) HINT="请检查素材类型、slug、标题、简介、标签、图片及上传文件（PNG/JPG/WebP/GIF，单张不超过 8 MB），详细原因见 Actions 日志。";;
             "[修改图片]"*) HINT="请检查 Skill 标识、图片地址和上传文件（PNG/JPG/WebP/GIF，单张不超过 8 MB），详细原因见 Actions 日志。";;
             "[删除 Skill]"*) HINT="请检查 Skill 标识是否正确，并确认已勾选删除确认。";;
             *) HINT="详细原因见 Actions 日志。";;
@@ -160,6 +163,7 @@ jobs:
           case "$ISSUE_TITLE" in
             "[导入 Skill]"*) MESSAGE="Skill 已自动导入。";;
             "[添加提示词]"*) MESSAGE="提示词已自动收录。";;
+            "[修改素材]"*) MESSAGE="素材信息与图片已更新，部署完成后刷新图库即可看到。";;
             "[修改图片]"*) MESSAGE="图片已更新，部署完成后刷新图库即可看到。";;
             "[删除 Skill]"*) MESSAGE="Skill 已从图库删除。";;
             *) MESSAGE="请求已处理。";;
