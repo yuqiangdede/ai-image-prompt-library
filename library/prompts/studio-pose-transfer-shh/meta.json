@@ -1,0 +1,24 @@
+{
+  "title": "双图参考姿势迁移｜人物照片转摄影棚“嘘”手势人像",
+  "description": "图一控制侧身与食指贴唇的姿势，图二锁定人物外貌与服装；生成专业暗灰摄影棚写实肖像。含姿势线稿、人物原图、棚拍效果三张封面，默认展示效果图。",
+  "category": "人像摄影 / 姿势迁移",
+  "tags": [
+    "双图参考",
+    "姿势迁移",
+    "人物一致性",
+    "摄影棚",
+    "侧面肖像",
+    "嘘手势",
+    "电影质感",
+    "写实摄影"
+  ],
+  "model": "GPT 图像生成",
+  "updated_at": "2026-11-14",
+  "cover": "images/studio-result.svg",
+  "images": [
+    "images/pose-reference.svg",
+    "images/person-reference.svg",
+    "images/studio-result.svg"
+  ],
+  "related_skills": []
+}
