@@ -1,22 +1,23 @@
 {
   "title": "黑白编辑艺术肖像｜侧面留白与光影",
-  "description": "以人物照片为参考，生成右侧半隐面孔的黑白编辑类艺术肖像；中灰至近白渐变背景、大面积负空间、定向柔光与细腻胶片颗粒，兼具神秘感和电影质感。",
+  "description": "上传人物照片，生成纪实纯艺术（Fine-Art）黑白肖像。中灰到近白渐变、胶片颗粒、柔和定向光和大面积留白。包含两张真人生成效果图，可切换展示。",
   "category": "人像摄影 / 黑白艺术",
   "tags": [
     "黑白人像",
-    "编辑摄影",
+    "Fine-Art",
+    "纪实艺术",
     "胶片颗粒",
     "定向柔光",
     "渐变背景",
     "负空间",
-    "局部特写",
     "人物一致性"
   ],
   "model": "GPT 图像生成",
   "updated_at": "2026-11-14",
-  "cover": "images/cover.svg",
+  "cover": "images/portrait-shadow.webp",
   "images": [
-    "images/cover.svg"
+    "images/portrait-shadow.webp",
+    "images/portrait-classic.webp"
   ],
   "related_skills": []
 }
