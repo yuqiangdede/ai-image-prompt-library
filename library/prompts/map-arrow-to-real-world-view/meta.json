@@ -18,5 +18,6 @@
     "images/hangzhou-olympic-riverside.webp",
     "images/hangzhou-olympic-map.webp"
   ],
-  "related_skills": []
+  "related_skills": [],
+  "cover_layout": "stacked"
 }

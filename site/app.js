@@ -75,7 +75,15 @@
       return;
     }
     $("gallery").innerHTML = results.map(item => {
-      const image = item.cover
+      const stackedImages = item.cover_layout === "stacked" && (item.images || []).length >= 2
+        ? item.images.slice(0, 2) : [];
+      const image = stackedImages.length === 2
+        ? '<div class="cover-stack">' + stackedImages.map((src, index) =>
+            '<div class="cover-stack-panel"><img loading="lazy" src="' + escapeHtml(address(src)) +
+            '" alt="' + escapeHtml(item.title + (index === 0 ? " 生成效果图" : " 地图参考图")) +
+            '"><span class="cover-stack-label">' + (index === 0 ? "生成效果" : "地图原图") +
+            '</span></div>').join("") + '</div>'
+        : item.cover
         ? '<img loading="lazy" src="' + escapeHtml(address(item.cover)) + '" alt="' + escapeHtml(item.title) + ' 效果图">'
         : '<span class="image-fallback">✳</span>';
       const chips = (item.tags || []).slice(0, 2).map(tag => '<span class="chip">' + escapeHtml(tag) + "</span>").join("");

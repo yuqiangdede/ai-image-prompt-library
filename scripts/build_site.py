@@ -48,7 +48,7 @@ def make_item(folder, kind):
         "title": meta["title"], "description": meta["description"], "category": meta["category"],
         "tags": meta.get("tags", []), "model": meta.get("model", "ChatGPT"),
         "updated_at": meta.get("updated_at", "2026-11-12"),
-        "cover": cover, "images": images, "related_skills": meta.get("related_skills", []),
+        "cover": cover, "images": images, "cover_layout": meta.get("cover_layout", ""), "related_skills": meta.get("related_skills", []),
         "content_path": body.relative_to(ROOT).as_posix(),
         "search_text": body.read_text(encoding="utf-8"),
         "source_url": upstream.get("url", meta.get("source_url", "")),

@@ -140,3 +140,8 @@
   .import-trigger{padding:0 11px}
 }
 
+/* Explicit two-image covers: one entry can show both input and generated result. */
+.image-wrap .cover-stack{position:absolute;inset:0;display:grid;grid-template-rows:minmax(0,1fr) minmax(0,1fr)}
+.image-wrap .cover-stack-panel{position:relative;min-height:0;overflow:hidden}
+.image-wrap .cover-stack-panel img{display:block;width:100%;height:100%;object-fit:cover}
+.image-wrap .cover-stack-label{position:absolute;right:8px;bottom:7px;padding:3px 7px;background:#18251cbd;color:#fff;font-size:10px;font-weight:600;line-height:1.4;border-radius:4px}
