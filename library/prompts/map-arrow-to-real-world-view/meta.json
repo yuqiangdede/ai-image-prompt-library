@@ -1,0 +1,22 @@
+{
+  "title": "地图红箭头转真实世界视角｜杭州钱塘江示例",
+  "description": "根据地图中红色圆圈/箭头确定机位与朝向，将俯视地图转换为地面人眼视角的写实场景。含杭州钱塘江原地图与奥体中心方向模拟效果双图示例（非核验街景）。",
+  "category": "场景重建 / 地图视角",
+  "tags": [
+    "地图转街景",
+    "箭头视角",
+    "真实世界",
+    "钱塘江",
+    "杭州奥体中心",
+    "写实摄影",
+    "地理空间"
+  ],
+  "model": "GPT 图像生成",
+  "updated_at": "2026-11-14",
+  "cover": "images/hangzhou-olympic-riverside.webp",
+  "images": [
+    "images/hangzhou-olympic-riverside.webp",
+    "images/hangzhou-olympic-map.webp"
+  ],
+  "related_skills": []
+}
