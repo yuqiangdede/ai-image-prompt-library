@@ -81,6 +81,13 @@ class ManageGalleryItemTests(unittest.TestCase):
                 "封面图片地址": "library/prompts/sample/images/two.webp",
             }, "sample", "prompt")
 
+    def test_issue_render_text_fences_are_ignored(self):
+        self.assertEqual(
+            manager.text_refs("```text\nlibrary/prompts/sample/images/one.webp\n```"),
+            ["library/prompts/sample/images/one.webp"],
+        )
+        self.assertEqual(manager.text_refs("```text\n无\n```"), ["无"])
+
     def test_kind_mismatch_rejected(self):
         self.make_item("prompt")
         with self.assertRaisesRegex(ValueError, "不存在"):

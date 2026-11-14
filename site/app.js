@@ -90,9 +90,11 @@
       return '<article class="gallery-card" data-item-id="' + escapeHtml(item.id) + '" data-cover-index="0"><button class="gallery-card-open" type="button" data-open="' + escapeHtml(item.id) +
         '"><div class="image-wrap">' + image + '<span class="image-label">' + typeName(item) +
         '</span></div><div class="card-details"><h3>' + escapeHtml(item.title) + '</h3><p>' + escapeHtml(item.description) +
-        '</p></div></button>' + coverControls + '<div class="card-foot"><div class="chips">' + chips + '</div><button class="favorite-button ' +
-        (fav ? "active" : "") + '" data-fav="' + escapeHtml(item.id) + '" aria-label="' + (fav ? "取消收藏" : "收藏") +
-        '">' + (fav ? "♥" : "♡") + "</button></div></article>";
+        '</p></div></button>' + coverControls + '<div class="card-foot"><div class="chips">' + chips + '</div>' +
+        '<div class="card-actions"><button type="button" class="card-edit-button" data-edit="' + escapeHtml(item.id) +
+        '" aria-label="编辑「' + escapeHtml(item.title) + '」的标题、标签和封面">✎ 编辑</button>' +
+        '<button class="favorite-button ' + (fav ? "active" : "") + '" data-fav="' + escapeHtml(item.id) +
+        '" aria-label="' + (fav ? "取消收藏" : "收藏") + '">' + (fav ? "♥" : "♡") + '</button></div></div></article>';
     }).join("");
   }
   function selectImage(path) {
@@ -336,9 +338,9 @@
         "；封面：" + coverLabel + "。"
       : "当前没有图片。";
   }
-  function openManage() {
-    const item = state.selected;
+  function openManage(item = state.selected) {
     if (!item) return;
+    const returnFocus = document.activeElement;
     const seen = new Set();
     const images = [];
     const add = src => {
@@ -348,7 +350,7 @@
     };
     (item.images || []).forEach(add);
     if (item.cover) add(item.cover);
-    state.manage = { item, images, cover: item.cover || (images[0] && images[0].src) || "" };
+    state.manage = { item, images, cover: item.cover || (images[0] && images[0].src) || "", returnFocus };
     $("manage-title").textContent = "管理「" + item.title + "」";
     $("manage-desc").textContent = "修改标题、简介、分类、标签和多张封面。提交后在 GitHub Issue 中核对确认，由 Actions 更新图库。";
     $("manage-item-title").value = item.title || "";
@@ -371,10 +373,11 @@
   }
   function closeManage() {
     if ($("skill-manage-modal").hidden) return;
+    const focusTarget = state.manage?.returnFocus;
     $("skill-manage-modal").hidden = true;
     state.manage = null;
     syncScrollLock();
-    if (!$("detail-modal").hidden) $("manage-skill").focus();
+    if (focusTarget?.isConnected) focusTarget.focus();
   }
   function addManageImage() {
     const manage = state.manage;
@@ -578,7 +581,8 @@
           : "提示词正文较长，未能自动复制。请从上面的输入框复制正文，粘贴到 GitHub 页面的「提示词正文」后再提交。";
       }
     });
-    $("manage-skill").addEventListener("click", openManage);
+    $("manage-skill").addEventListener("click", () => openManage());
+    $("detail-edit").addEventListener("click", () => openManage());
     $("close-skill-manage").addEventListener("click", closeManage);
     $("skill-manage-modal").addEventListener("click", event => {
       if (event.target.dataset.manageDismiss) closeManage();
@@ -647,6 +651,12 @@
       state.kind = "all"; state.category = "all"; state.search = ""; $("search").value = ""; render();
     });
     $("gallery").addEventListener("click", event => {
+      const edit = event.target.closest("[data-edit]");
+      if (edit) {
+        const item = state.items.find(x => x.id === edit.dataset.edit);
+        if (item) openManage(item);
+        return;
+      }
       const slide = event.target.closest("[data-slide]");
       if (slide) {
         const card = slide.closest(".gallery-card");

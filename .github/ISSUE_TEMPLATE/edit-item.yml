@@ -8,13 +8,12 @@ body:
         从图库详情页「管理」打开时，各字段会自动填写当前内容。
         提交前请核对，只有仓库所有者提交的 Issue 才会触发自动修改。
         图片会发布到公开仓库，请勿上传私人内容或未经授权的图片。
-  - type: dropdown
+  - type: input
     id: item_kind
     attributes:
       label: 素材类型
-      options:
-        - prompt
-        - skill
+      description: 自动填写 prompt 或 skill，请勿改为其他值。
+      placeholder: prompt
     validations:
       required: true
   - type: input

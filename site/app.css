@@ -156,3 +156,17 @@
 .manage-field-wide{grid-column:1/-1}
 .manage-danger[hidden]{display:none!important}
 @media(max-width:600px){.manage-fields{grid-template-columns:1fr}.manage-field-wide{grid-column:auto}.card-carousel-controls{top:7px;right:7px}.card-carousel-controls button{width:32px;height:32px}}
+
+/* Make editing discoverable in both gallery cards and the detail header. */
+.card-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex:none}
+.card-edit-button{display:inline-flex;align-items:center;justify-content:center;gap:3px;white-space:nowrap;min-height:34px;padding:0 10px;border:1px solid #cbd8c6;background:#f3f7ef;border-radius:7px;color:#30483b;font-size:11px;font-weight:800}
+.card-edit-button:hover,.card-edit-button:focus-visible{background:#e2ecda;border-color:#8eae8b}
+.card-actions .favorite-button{flex:none;min-height:34px}
+.gallery[data-view="small"] .card-foot{justify-content:flex-end}
+.gallery[data-view="small"] .card-actions{gap:2px}
+.gallery[data-view="small"] .card-edit-button{min-height:29px;padding:0 6px;font-size:10px}
+.gallery[data-view="small"] .favorite-button{min-width:22px}
+.detail-top-actions{display:flex;align-items:center;gap:12px}
+.modal-top .detail-edit-button{display:inline-flex;align-items:center;justify-content:center;width:auto;min-width:110px;height:38px;padding:0 14px;border:1px solid #c4d5c4;border-radius:8px;background:#30483b;color:#fff;font-size:12px;font-weight:800;letter-spacing:0}
+.modal-top .detail-edit-button:hover{background:#42664e}
+@media(max-width:600px){.detail-top-actions{gap:6px}.modal-top .detail-edit-button{min-width:92px;height:36px;padding:0 9px;font-size:11px}.card-actions{gap:4px}.card-edit-button{padding:0 9px}}

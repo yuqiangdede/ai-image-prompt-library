@@ -55,7 +55,7 @@
   <div id="detail-modal" class="modal" hidden>
     <div class="modal-backdrop" data-dismiss="1"></div>
     <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="detail-title">
-      <div class="modal-top"><span id="detail-kind">SKILL</span><button id="close-modal" type="button" aria-label="关闭详情">✕</button></div>
+      <div class="modal-top"><span id="detail-kind">SKILL</span><div class="detail-top-actions"><button id="detail-edit" type="button" class="detail-edit-button" aria-haspopup="dialog" aria-controls="skill-manage-modal">✎ 编辑素材</button><button id="close-modal" type="button" aria-label="关闭详情">✕</button></div></div>
       <div class="modal-layout">
         <div class="preview-pane"><div id="detail-hero" class="detail-hero"></div><div id="detail-thumbs" class="thumbs"></div></div>
         <div class="info-pane"><h2 id="detail-title"></h2><p id="detail-description" class="description"></p><div id="detail-tags" class="detail-tags"></div>
@@ -63,7 +63,7 @@
           <div id="source-box" class="source-box" hidden><span>UPSTREAM SOURCE</span><a id="upstream-link" href="#" target="_blank" rel="noopener">查看原始 Skill ↗</a><code id="upstream-sha"></code></div>
           <div class="action-stack"><button id="copy-primary" class="primary-action">复制完整内容</button><div class="secondary-actions"><button id="copy-text">仅复制原文</button><button id="download-file">下载文件</button></div></div>
           <p id="detail-note" class="detail-note"></p>
-          <div id="manage-box" class="manage-box" hidden><div><span class="manage-box-kicker">GALLERY MANAGEMENT</span><p>修改标题、标签、封面和效果图，支持多封面轮换。</p></p></div><button id="manage-skill" type="button" aria-haspopup="dialog" aria-controls="skill-manage-modal">管理</button></div>
+          <div id="manage-box" class="manage-box" hidden><div><span class="manage-box-kicker">GALLERY MANAGEMENT</span><p>修改标题、标签、封面和效果图，支持多封面轮换。</p></div><button id="manage-skill" type="button" aria-haspopup="dialog" aria-controls="skill-manage-modal">管理</button></div>
           <div id="detail-related" class="related"></div>
           <div class="content-box"><div class="content-head"><h3 id="content-heading">完整内容</h3><a id="open-source" target="_blank" rel="noopener">在 GitHub 中打开 ↗</a></div><pre id="detail-content"></pre></div>
         </div>

@@ -77,7 +77,7 @@ def text_refs(text):
     refs = []
     for line in (text or "").splitlines():
         line = line.strip()
-        if not line:
+        if not line or re.fullmatch(r"`{3,}[A-Za-z0-9_-]*", line):
             continue
         line = re.sub(r"^[-*+]\s+", "", line).strip().strip("`").strip()
         if line in ("", "No response", "_No response_"):
