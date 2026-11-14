@@ -13,9 +13,9 @@
   ],
   "model": "ChatGPT Images",
   "updated_at": "2026-11-14",
-  "cover": "images/cover.webp",
+  "cover": "images/cover.svg",
   "images": [
-    "images/cover.webp"
+    "images/cover.svg"
   ],
   "cover_layout": "4:5",
   "status": "draft"
