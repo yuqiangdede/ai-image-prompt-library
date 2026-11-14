@@ -37,7 +37,7 @@ scripts/sync_upstream.py          检查并同步上游 Skill
 
 **添加 Skill**：在 `library/skills/` 新建目录，放入完整 `SKILL.md`、配套资源和 `meta.json`。来自 GitHub 的 Skill 可增加 `upstream.json` 来启用定时同步。
 
-**修改封面或图片**：在详情页点「管理」走 GitHub Issue 流程，或直接调整 `meta.json` 的 `cover` / `images`。上游同步不会修改本地 `meta.json`。
+**修改封面或图片**：打开素材详情，点击右上角「✎ 编辑素材」进入编辑面板，再通过 GitHub Issue 确认；也可直接调整 `meta.json` 的 `cover` / `images`。上游同步不会修改本地 `meta.json`。
 
 **手动同步上游**：仓库的 Actions → Deploy Prompt & Skill Gallery → Run workflow → 选择“同步上游”。
 
@@ -96,7 +96,7 @@ python -m http.server 8000 --directory dist
 
 ## 修改 Prompt / Skill 信息和多封面
 
-**首页每张素材卡片右下角都有「✎ 编辑」按钮，点一下就能打开统一编辑面板。** 也可以打开素材详情，在顶栏点击「✎ 编辑素材」（保留原有「管理」入口）：
+**编辑入口统一为素材详情页右上角的「✎ 编辑素材」**：从图库点击任意素材打开详情，再点击该按钮进入编辑面板；图库卡片和详情内容区不再提供重复的编辑入口：
 
 - **基本信息**：直接在网页填写标题、简介、分类、标签；目录标识（slug）不受标题更改影响。
 - **多封面**：一个条目的 `images` 保存多张作品图，`cover` 指定默认展示的主封面。图库卡片右上角可用左右箭头轮换查看全部保留图片，详情页也有缩略图切换。
@@ -109,7 +109,7 @@ python -m http.server 8000 --directory dist
 
 ## 修改图片或删除已收录的 Skill
 
-带上游来源的 Skill 在详情页会显示「管理」入口：
+带上游来源的 Skill 也可通过详情页右上角的「✎ 编辑素材」进入管理面板：
 
 - **修改图片**：勾选要保留的图、选择封面、填写新图地址；点「在 GitHub 确认修改」会打开已预填的 Issue 表单，还可以直接上传手机或电脑里的图片。提交后 Actions 会把上传文件保存到 `library/skills/<slug>/images/`，更新 `meta.json`，然后重新构建发布。
 - **删除 Skill**：先在图库确认，再打开删除 Issue 表单并勾选确认。Actions 会删除整个 `library/skills/<slug>/` 目录，并从其他条目的 `related_skills` 中移除引用。
