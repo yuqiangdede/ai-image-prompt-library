@@ -17,10 +17,10 @@
     "杂志大片"
   ],
   "model": "GPT 图像生成",
-  "updated_at": "2026-11-14",
-  "cover": "images/cover.webp",
+  "updated_at": "2026-11-15",
+  "cover": "images/upload-4d273d30d0567ca2.png",
   "images": [
-    "images/cover.webp"
+    "images/upload-4d273d30d0567ca2.png"
   ],
   "related_skills": []
 }
