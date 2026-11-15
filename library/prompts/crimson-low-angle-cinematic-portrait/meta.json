@@ -13,10 +13,10 @@
     "竖版肖像"
   ],
   "model": "GPT 图像生成",
-  "updated_at": "2026-11-14",
-  "cover": "images/cover.svg",
+  "updated_at": "2026-11-15",
+  "cover": "images/cover.webp",
   "images": [
-    "images/cover.svg"
+    "images/cover.webp"
   ],
   "related_skills": []
 }
