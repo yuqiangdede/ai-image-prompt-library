@@ -1,0 +1,56 @@
+{
+  "tweaks": [
+    {
+      "id": "density",
+      "label": "留白",
+      "var": "--density",
+      "min": 0.7,
+      "max": 1.5,
+      "step": 0.05,
+      "value": 1,
+      "note": "卡片内边距、卡片间距、区块上边距"
+    },
+    {
+      "id": "radius",
+      "label": "卡片圆角",
+      "var": "--radius-card",
+      "min": 0,
+      "max": 24,
+      "unit": "px",
+      "step": 1,
+      "value": 11,
+      "note": "图库卡片圆角，小图视图自动减 2px"
+    },
+    {
+      "id": "brand",
+      "label": "主色",
+      "var": "--color-primary",
+      "type": "color",
+      "value": "#30483b",
+      "note": "选中标签、主按钮、数量强调"
+    },
+    {
+      "id": "title",
+      "label": "标题字号",
+      "var": "--text-card-title",
+      "min": 12,
+      "max": 22,
+      "unit": "px",
+      "step": 1,
+      "value": 16,
+      "note": "卡片标题；正文描述固定 12px 不跟着变"
+    },
+    {
+      "id": "layout",
+      "label": "卡片排法",
+      "attr": "data-layout",
+      "options": [
+        { "label": "四列", "value": "grid" },
+        { "label": "三列大图", "value": "wide" },
+        { "label": "五列紧凑", "value": "dense" }
+      ],
+      "value": "grid",
+      "note": "只在宽屏（≥1051px）生效，手机仍按两列"
+    }
+  ]
+}

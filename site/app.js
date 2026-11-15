@@ -9,6 +9,37 @@
   const escapeHtml = text => String(text ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" })[c]);
   const address = path => String(path || "").startsWith("https://") ? path : "./" + String(path || "").split("/").map(encodeURIComponent).join("/");
   const typeName = item => item.kind === "skill" ? "SKILL" : "PROMPT";
+  const ellipsis = "…";
+  function galleryCardWidth() {
+    const first = $("gallery").querySelector(".gallery-card");
+    if (first) return first.getBoundingClientRect().width;
+    return ($("gallery").clientWidth - 60) / 4;
+  }
+  /* 按真实行高截断卡片里的标题/描述：让文字本身只占允许的行数，
+     不靠 -webkit-line-clamp 硬裁（裁掉的内容仍占排版空间，会被判成文字重叠）。 */
+  function trimToLines(el, maxLines) {
+    const full = el.dataset.full != null ? el.dataset.full : el.textContent;
+    el.dataset.full = full;
+    el.textContent = full;
+    const cs = getComputedStyle(el);
+    const size = parseFloat(cs.fontSize) || 16;
+    const lineHeight = parseFloat(cs.lineHeight) || size * 1.4;
+    const limit = Math.ceil(lineHeight * maxLines) + 1;
+    if (el.scrollHeight <= limit) return;
+    const charsPerLine = Math.max(4, Math.floor(el.clientWidth / size));
+    let text = full.slice(0, charsPerLine * maxLines + Math.ceil(charsPerLine * 0.4));
+    el.textContent = text + ellipsis;
+    for (let i = 0; i < 40 && text.length > 1 && el.scrollHeight > limit; i++) {
+      text = text.slice(0, -1);
+      el.textContent = text + ellipsis;
+    }
+    el.textContent = text.replace(/[，、：；,.:;\s]+$/, "") + ellipsis;
+  }
+  function fitCardText() {
+    document.querySelectorAll("#gallery .card-details h3").forEach(el => trimToLines(el, 1));
+    if (state.view === "small") return;
+    document.querySelectorAll("#gallery .card-details p").forEach(el => trimToLines(el, 2));
+  }
   let timer;
 
   try { state.favorites = new Set(JSON.parse(localStorage.getItem(favoriteKey) || "[]")); } catch { state.favorites = new Set(); }
@@ -79,21 +110,26 @@
       const image = coverSources.length
         ? '<img loading="lazy" src="' + escapeHtml(address(coverSources[0])) + '" alt="' + escapeHtml(item.title) + ' 效果图">'
         : '<span class="image-fallback">✳</span>';
-      const coverControls = coverSources.length > 1
-        ? '<div class="card-carousel-controls" aria-label="切换封面">' +
-          '<button type="button" data-slide="-1" aria-label="上一张封面">‹</button>' +
-          '<span class="card-carousel-counter" aria-live="polite">1 / ' + coverSources.length + '</span>' +
-          '<button type="button" data-slide="1" aria-label="下一张封面">›</button></div>'
+      const coverDots = coverSources.length > 1
+        ? '<div class="card-carousel-dots" role="group" aria-label="切换封面">' +
+          coverSources.map((src, index) =>
+            '<button type="button" data-slide-to="' + index + '" aria-label="切换到第 ' + (index + 1) + ' 张封面"' +
+            (index === 0 ? ' aria-current="true"' : "") + '></button>').join("") +
+          '</div>'
         : '';
-      const chips = (item.tags || []).slice(0, 2).map(tag => '<span class="chip">' + escapeHtml(tag) + "</span>").join("");
+      const cardWidth = galleryCardWidth();
+      const chipMax = Math.max(1, Math.floor((cardWidth - 90) / (13 + 8)));
+      const visibleTags = (item.tags || []).filter(tag => [...tag].reduce((s, c) => s + (c.charCodeAt(0) > 255 ? 2 : 1), 0) <= chipMax).slice(0, 2);
+      const chips = visibleTags.map(tag => '<span class="chip">' + escapeHtml(tag) + "</span>").join("");
       const fav = state.favorites.has(item.id);
       return '<article class="gallery-card" data-item-id="' + escapeHtml(item.id) + '" data-cover-index="0"><button class="gallery-card-open" type="button" data-open="' + escapeHtml(item.id) +
         '"><div class="image-wrap">' + image + '<span class="image-label">' + typeName(item) +
         '</span></div><div class="card-details"><h3>' + escapeHtml(item.title) + '</h3><p>' + escapeHtml(item.description) +
-        '</p></div></button>' + coverControls + '<div class="card-foot"><div class="chips">' + chips + '</div>' +
+        '</p></div></button>' + coverDots + '<div class="card-foot"><div class="chips">' + chips + '</div>' +
         '<div class="card-actions"><button class="favorite-button ' + (fav ? "active" : "") + '" data-fav="' + escapeHtml(item.id) +
         '" aria-label="' + (fav ? "取消收藏" : "收藏") + '">' + (fav ? "♥" : "♡") + '</button></div></div></article>';
     }).join("");
+    fitCardText();
   }
   function selectImage(path) {
     $("detail-hero").innerHTML = path
@@ -530,6 +566,30 @@
     window.open(url, "_blank", "noopener,noreferrer");
   }
   function bind() {
+    /* 卡片列数/宽度变化时（窗口缩放、小图视图、调节滑块改排法）重新截断文字 */
+    let lastGalleryWidth = 0;
+    const refit = () => {
+      const width = Math.round($("gallery").getBoundingClientRect().width);
+      if (width === lastGalleryWidth) return;
+      lastGalleryWidth = width;
+      fitCardText();
+    };
+    if (window.ResizeObserver) {
+      new ResizeObserver(refit).observe($("gallery"));
+    } else {
+      window.addEventListener("resize", refit);
+    }
+    /* 调节滑块改的是 <html> 上的 CSS 变量 / data-layout，不会触发 resize，
+       这里跟着重新截断一次，标题字号或列数变化后文字才不会硬裁。 */
+    let refitTimer;
+    const scheduleRefit = () => {
+      clearTimeout(refitTimer);
+      refitTimer = setTimeout(fitCardText, 80);
+    };
+    new MutationObserver(scheduleRefit).observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["style", "class", "data-layout"]
+    });
     $("open-skill-import").addEventListener("click", openSkillImport);
     $("close-skill-import").addEventListener("click", closeSkillImport);
     $("skill-import-modal").addEventListener("click", event => {
@@ -713,19 +773,21 @@
       state.kind = "all"; state.category = "all"; state.search = ""; $("search").value = ""; render();
     });
     $("gallery").addEventListener("click", event => {
-      const slide = event.target.closest("[data-slide]");
-      if (slide) {
-        const card = slide.closest(".gallery-card");
+      const dot = event.target.closest("[data-slide-to]");
+      if (dot) {
+        const card = dot.closest(".gallery-card");
         const item = state.items.find(x => x.id === card?.dataset.itemId);
         if (!card || !item) return;
         const images = [...new Set([item.cover, ...(item.images || [])].filter(Boolean))];
         if (images.length < 2) return;
-        const next = (Number(card.dataset.coverIndex || 0) + Number(slide.dataset.slide) + images.length) % images.length;
+        const next = Math.min(images.length - 1, Math.max(0, Number(dot.dataset.slideTo) || 0));
         card.dataset.coverIndex = String(next);
         const preview = card.querySelector(".image-wrap img");
         if (preview) preview.src = address(images[next]);
-        const counter = card.querySelector(".card-carousel-counter");
-        if (counter) counter.textContent = (next + 1) + " / " + images.length;
+        card.querySelectorAll(".card-carousel-dots button").forEach((el, index) => {
+          if (index === next) el.setAttribute("aria-current", "true");
+          else el.removeAttribute("aria-current");
+        });
         return;
       }
       const fav = event.target.closest("[data-fav]");

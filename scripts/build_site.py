@@ -63,7 +63,7 @@ def make_item(folder, kind):
 def version_frontend_assets(index_path):
     """Fingerprint CSS/JS URLs so browsers do not retain outdated layouts."""
     html = index_path.read_text(encoding="utf-8")
-    for filename, attribute in (("app.css", "href"), ("app.js", "src")):
+    for filename, attribute in (("tokens.css", "href"), ("app.css", "href"), ("app.js", "src")):
         marker = f'{attribute}="./{filename}"'
         if html.count(marker) != 1:
             raise ValueError(f"Expected exactly one static asset reference: {marker}")
