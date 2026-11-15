@@ -337,16 +337,14 @@
     const tiles = images.map((image, index) => {
       const kept = image.kept;
       const cover = manage.cover === image.src;
-      const preview = image.isLocal ? image.src : address(image.src);
-      const badge = image.isLocal ? "本地待上传" : "新增";
+      const preview = address(image.src);
       return '<figure class="manage-image' + (kept ? "" : " is-dropped") + '">' +
         '<div class="manage-image-frame">' +
         '<img loading="lazy" src="' + escapeHtml(preview) + '" alt="' +
         escapeHtml((image.isNew ? "新增图片 " : "图片 ") + (index + 1)) + '">' +
-        (image.isNew ? '<span class="manage-image-badge">' + badge + '</span>' : "") +
+        (image.isNew ? '<span class="manage-image-badge">新增链接</span>' : "") +
         (kept ? "" : '<span class="manage-image-dropped">已移除</span>') +
-        '</div>' + (image.isLocal ? '<div class="manage-image-name" title="' +
-          escapeHtml(image.file.name) + '">' + escapeHtml(image.file.name) + '</div>' : "") +
+        '</div>' +
         '<figcaption>' +
         '<label><input type="checkbox" data-manage-keep="' + index + '" aria-label="保留图片 ' +
         (index + 1) + '"' + (kept ? " checked" : "") + '> 保留</label>' +
@@ -358,30 +356,25 @@
           '" aria-label="移除这张新增图片">✕</button>' : "") +
         '</figure>';
     }).join("");
-    const autoCover = images.length
-      ? '<label class="manage-auto-cover"><input type="radio" name="manage-cover" data-manage-cover="auto"' +
-        (manage.cover ? "" : " checked") + '> 新增图片优先作封面（含稍后上传）</label>'
-      : "";
-    $("manage-images").innerHTML = images.length
-      ? tiles + autoCover
-      : '<p class="manage-empty">当前没有图片。可以添加图片地址，或在 GitHub 表单中上传。</p>';
+    const coverOptions =
+      '<label class="manage-auto-cover"><input type="radio" name="manage-cover" data-manage-cover="auto"' +
+      (manage.cover ? "" : " checked") + '> 自动选择封面（优先新增图片）</label>' +
+      '<label class="manage-auto-cover"><input type="radio" name="manage-cover" data-manage-cover="upload-first"' +
+      (manage.cover === "upload:1" ? " checked" : "") +
+      '> 将 GitHub 表单上传的第 1 张图片设为封面（上传必填）</label>';
+    $("manage-images").innerHTML =
+      (images.length ? tiles : '<p class="manage-empty">当前没有图片，可添加图片链接或在 GitHub 表单中直接上传。</p>') +
+      coverOptions;
     const kept = images.filter(image => image.kept);
-    const locals = kept.filter(image => image.isLocal);
     const newCount = kept.filter(image => image.isNew).length;
-    const guide = $("manage-local-upload-guide");
-    guide.hidden = !locals.length;
-    guide.textContent = locals.length
-      ? "GitHub 表单必填上传区域：请按顺序重新上传以下 " + locals.length + " 张图片（顺序必须一致）：\n" +
-        locals.map((image, index) => (index + 1) + ". " + image.file.name).join("\n")
-      : "";
-    const coverLabel = manage.cover
-      ? (images.find(image => image.src === manage.cover)?.isLocal ? "本地图片（待上传）" :
-          images.find(image => image.src === manage.cover)?.isNew ? "新增图片" : "已选图片")
-      : "自动（优先新增图片）";
-    $("manage-summary").textContent = images.length
-      ? "将保留 " + kept.length + " 张图片" + (newCount ? "（其中新增 " + newCount + " 张）" : "") +
-        "；封面：" + coverLabel + "。"
-      : "当前没有图片。";
+    const coverLabel = manage.cover === "upload:1" ? "GitHub 本次上传第 1 张图片" :
+      manage.cover
+        ? (images.find(image => image.src === manage.cover)?.isNew ? "新增链接图片" : "现有图片")
+        : "自动（优先新增图片）";
+    $("manage-summary").textContent =
+      "已选保留 " + kept.length + " 张图片" +
+      (newCount ? "（其中新增链接 " + newCount + " 张）" : "") +
+      "；封面：" + coverLabel + "。GitHub 上传的图片提交后才会出现在图库中。";
   }
   function openManage(item = state.selected) {
     if (!item) return;
@@ -404,8 +397,6 @@
     $("manage-item-tags").value = (item.tags || []).join(", ");
     $("manage-danger-section").hidden = item.kind !== "skill";
     $("manage-new-image").value = "";
-    $("manage-local-images").value = "";
-    $("manage-local-error").hidden = true;
     $("manage-add-error").hidden = true;
     $("manage-status").hidden = true;
     $("manage-confirm").hidden = true;
@@ -422,7 +413,6 @@
     if ($("skill-manage-modal").hidden) return;
     const focusTarget = state.manage?.returnFocus;
     $("skill-manage-modal").hidden = true;
-    (state.manage?.images || []).filter(image => image.isLocal).forEach(image => URL.revokeObjectURL(image.src));
     state.manage = null;
     syncScrollLock();
     if (focusTarget?.isConnected) focusTarget.focus();
@@ -462,37 +452,6 @@
     renderManage();
     $("manage-add-image").focus();
   }
-  function addManageLocalFiles(fileList) {
-    const manage = state.manage;
-    if (!manage) return;
-    const input = $("manage-local-images");
-    const error = $("manage-local-error");
-    error.hidden = true;
-    const candidates = [...fileList].filter(file =>
-      !manage.images.some(image => image.isLocal && image.file.name === file.name &&
-        image.file.size === file.size && image.file.lastModified === file.lastModified));
-    input.value = "";
-    if (!candidates.length) return;
-    const invalid = candidates.find(file => !/\.(png|jpe?g|webp|gif)$/i.test(file.name) ||
-      !["image/png", "image/jpeg", "image/webp", "image/gif"].includes(file.type));
-    const existingNew = manage.images.filter(image => image.isNew && image.kept).length;
-    const selectedLocalBytes = manage.images.filter(image => image.isLocal && image.kept)
-      .reduce((total, image) => total + image.file.size, 0);
-    const tooLarge = candidates.find(file => file.size > 8000000 || file.size === 0);
-    let problem = "";
-    if (invalid) problem = "只支持 PNG、JPG、WebP 或 GIF 图片：" + invalid.name;
-    else if (tooLarge) problem = "单张图片必须大于 0 字节且不超过 8 MB：" + tooLarge.name;
-    else if (existingNew + candidates.length > 10) problem = "本次最多新增 10 张图片（含图片链接）。";
-    else if (selectedLocalBytes + candidates.reduce((sum, file) => sum + file.size, 0) > 32000000)
-      problem = "本次本地图片合计不能超过 32 MB。";
-    if (problem) { error.textContent = problem; error.hidden = false; return; }
-    candidates.forEach(file => {
-      const src = URL.createObjectURL(file);
-      manage.images.push({ src, kept: true, isNew: true, isLocal: true, file });
-    });
-    manage.cover = manage.images[manage.images.length - candidates.length].src;
-    renderManage();
-  }
   function showManageStatus(message, url) {
     $("manage-status-text").textContent = message;
     $("manage-status-link").href = url;
@@ -502,7 +461,7 @@
     const manage = state.manage;
     if (!manage) return;
     const kept = manage.images.filter(image => image.kept);
-    if (manage.cover && !kept.some(image => image.src === manage.cover)) {
+    if (manage.cover && manage.cover !== "upload:1" && !kept.some(image => image.src === manage.cover)) {
       showToast("封面必须在保留的图片中");
       return;
     }
@@ -514,12 +473,9 @@
     if (title.length > 80 || description.length > 300 || category.length > 40) return showToast("基础信息超过长度限制");
     if (tags.length > 24 || tags.some(tag => tag.length > 30)) return showToast("标签最多 24 个，每个不超过 30 字");
     const existing = kept.filter(image => !image.isNew).map(image => image.src);
-    const added = kept.filter(image => image.isNew && !image.isLocal).map(image => image.src);
-    const locals = kept.filter(image => image.isLocal);
-    const chosenCover = kept.find(image => image.src === manage.cover);
-    const coverRef = chosenCover?.isLocal ? "upload:" + (locals.indexOf(chosenCover) + 1) : manage.cover;
+    const added = kept.filter(image => image.isNew).map(image => image.src);
     const params = new URLSearchParams();
-    params.set("template", locals.length ? "edit-item-upload.yml" : "edit-item.yml");
+    params.set("template", manage.cover === "upload:1" ? "edit-item-upload.yml" : "edit-item.yml");
     params.set("item_kind", manage.item.kind);
     params.set("item_slug", manage.item.slug);
     params.set("item_title", title);
@@ -527,16 +483,12 @@
     params.set("item_category", category);
     params.set("item_tags", [...new Set(tags)].join(", "));
     params.set("keep_images", existing.length ? existing.join("\n") : "无");
-    params.set("cover_url", coverRef);
+    params.set("cover_url", manage.cover);
     params.set("new_image_urls", added.join("\n"));
-    if (locals.length) {
-      params.set("upload_count", String(locals.length));
-      params.set("upload_list", locals.map((image, index) => (index + 1) + ". " + image.file.name).join("\n"));
-    }
     const url = state.catalog.repository_url + "/issues/new?" + params.toString();
-    const message = locals.length
-      ? "注意：网页中仅预览了图片，并未上传到 GitHub。新页面的「上传新图片」为必填项，请按清单顺序再次选择同样的 " + locals.length + " 张图片，确认附件出现后再提交。"
-      : "已尝试打开 GitHub 确认页。请检查图片列表，必要时在页面上传新图片，然后提交 Issue。";
+    const message = manage.cover === "upload:1"
+      ? "已打开 GitHub 确认页，请在「上传新图片」中选择本地图片一次。上传为必填，第一张上传的图片将成为封面；确认附件显示后再提交 Issue。"
+      : "已打开 GitHub 确认页：需要上传本地图片时，直接在「上传新图片」选择一次即可；也可只修改已有图片或链接，确认后提交 Issue。";
     showManageStatus(message, url);
     window.open(url, "_blank", "noopener,noreferrer");
   }
@@ -714,15 +666,15 @@
       const cover = event.target.closest("[data-manage-cover]");
       if (!cover) return;
       const value = cover.dataset.manageCover;
-      manage.cover = value === "auto" ? "" : manage.images[Number(value)].src;
+      manage.cover = value === "auto" ? "" :
+        value === "upload-first" ? "upload:1" : manage.images[Number(value)].src;
       renderManage();
-      manageFocus(value === "auto" ? '[data-manage-cover="auto"]' : '[data-manage-cover="' + value + '"]');
+      manageFocus('[data-manage-cover="' + value + '"]');
     });
     $("manage-images").addEventListener("click", event => {
       const button = event.target.closest("[data-manage-remove]");
       if (!button || !state.manage) return;
       const removed = state.manage.images.splice(Number(button.dataset.manageRemove), 1)[0];
-      if (removed?.isLocal) URL.revokeObjectURL(removed.src);
       if (removed && state.manage.cover === removed.src) state.manage.cover = "";
       renderManage();
       $("manage-add-image").focus();
@@ -736,15 +688,6 @@
       addManageImage();
     });
     $("manage-add-image").addEventListener("click", addManageImage);
-    $("manage-local-images").addEventListener("change", event => addManageLocalFiles(event.target.files));
-    const dropArea = $("manage-local-drop");
-    dropArea.addEventListener("dragover", event => { event.preventDefault(); dropArea.classList.add("is-dragging"); });
-    dropArea.addEventListener("dragleave", () => dropArea.classList.remove("is-dragging"));
-    dropArea.addEventListener("drop", event => {
-      event.preventDefault();
-      dropArea.classList.remove("is-dragging");
-      addManageLocalFiles(event.dataTransfer.files);
-    });
     $("manage-submit").addEventListener("click", submitManage);
     $("manage-delete").addEventListener("click", askDelete);
     $("manage-delete-cancel").addEventListener("click", cancelDelete);

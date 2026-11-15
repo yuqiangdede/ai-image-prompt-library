@@ -114,16 +114,9 @@
         <div id="manage-images" class="manage-images"></div>
         <p id="manage-summary" class="manage-summary" role="status"></p>
       </section>
-      <section class="manage-section" aria-labelledby="manage-local-heading">
-        <div class="manage-section-head"><h3 id="manage-local-heading">选择本地图片</h3><p>先预览、选择封面，再到 GitHub 确认上传。</p></div>
-        <label id="manage-local-drop" class="manage-local-picker" for="manage-local-images">
-          <span>＋ 选择图片，或拖放到这里</span>
-          <small>支持 PNG / JPG / WebP / GIF · 单张 ≤ 8 MB · 每次最多新增 10 张</small>
-        </label>
-        <input id="manage-local-images" class="manage-local-input" type="file" accept=".png,.jpg,.jpeg,.webp,.gif,image/png,image/jpeg,image/webp,image/gif" multiple aria-describedby="manage-local-help manage-local-error">
-        <p id="manage-local-error" class="import-error" role="alert" hidden></p>
-        <p id="manage-local-help" class="manage-help">这里选择的图片只用于本地预览，尚未上传到服务器。点击下方「在 GitHub 确认修改」后，必须在 GitHub 表单「上传新图片」重新选取同样的文件，才能保存到图库。</p>
-        <p id="manage-local-upload-guide" class="manage-local-guide" aria-live="polite" hidden></p>
+      <section class="manage-section" aria-labelledby="manage-github-upload-heading">
+        <div class="manage-section-head"><h3 id="manage-github-upload-heading">上传本地图片</h3><p>只在 GitHub 表单中选择文件一次，不再在图库预选。</p></div>
+        <p class="manage-help">先调整上方已有图片及封面，再点击下方「在 GitHub 确认修改 / 上传图片」。GitHub 页面会提供「上传新图片」字段，可选择 PNG / JPG / WebP / GIF（单张不超过 8 MB，本次最多 10 张）。如果要将新上传的图片作为封面，请在上方选择「将 GitHub 表单上传的第 1 张图片设为封面」。</p>
       </section>
       <section class="manage-section" aria-labelledby="manage-add-heading">
         <label id="manage-add-heading" for="manage-new-image">新增图片地址</label>
@@ -132,14 +125,14 @@
           <button id="manage-add-image" type="button">添加</button>
         </div>
         <p id="manage-add-error" class="import-error" role="alert" hidden></p>
-        <p class="manage-help">图片链接与本地选择可以同时使用。如果直接到 GitHub 表单上传图片而未在这里选图，可选择「新增图片优先作封面」。</p>
+        <p class="manage-help">图片链接可在图库预览；本地图片只在 GitHub 页面上传一次。未指定封面时，自动优先选择新增链接图片，其次选择新上传图片。</p>
       </section>
       <div id="manage-status" class="import-status" role="status" aria-live="polite" hidden>
         <p id="manage-status-text"></p>
         <a id="manage-status-link" href="#" target="_blank" rel="noopener noreferrer">没有自动打开？点此继续 ↗</a>
       </div>
       <div class="manage-actions">
-        <button id="manage-submit" class="primary-action" type="button">在 GitHub 确认修改 ↗</button>
+        <button id="manage-submit" class="primary-action" type="button">在 GitHub 确认修改 / 上传图片 ↗</button>
         <a id="manage-edit-meta" class="manage-edit-link" target="_blank" rel="noopener">在 GitHub 编辑 JSON ↗</a>
       </div>
       <section id="manage-danger-section" class="manage-danger" aria-labelledby="manage-danger-heading">

@@ -142,8 +142,8 @@ class ManageGalleryItemTests(unittest.TestCase):
         self.assertEqual(meta["cover"], meta["images"][2])
         self.assertTrue((folder / meta["cover"]).is_file())
 
-    def test_github_form_requires_reupload_for_local_image_edits(self):
-        """Local previews are not GitHub attachments; enforce upload before creating an Issue."""
+    def test_single_upload_only_in_github_form(self):
+        """The gallery must not stage or preview local files before GitHub upload."""
         root = Path(__file__).resolve().parents[1]
         required_template = (root / ".github/ISSUE_TEMPLATE/edit-item-upload.yml").read_text(encoding="utf-8")
         optional_template = (root / ".github/ISSUE_TEMPLATE/edit-item.yml").read_text(encoding="utf-8")
@@ -151,8 +151,32 @@ class ManageGalleryItemTests(unittest.TestCase):
         optional_block = optional_template.split("  - type: upload", 1)[1].split("  - type: checkboxes", 1)[0]
         self.assertIn("      required: true", upload_block)
         self.assertIn("      required: false", optional_block)
+        for template in (required_template, optional_template):
+            self.assertNotIn("id: upload_count", template)
+            self.assertNotIn("id: upload_list", template)
         app = (root / "site/app.js").read_text(encoding="utf-8")
-        self.assertIn('params.set("template", locals.length ? "edit-item-upload.yml" : "edit-item.yml")', app)
+        page = (root / "site/index.html").read_text(encoding="utf-8")
+        self.assertIn('manage.cover === "upload:1" ? "edit-item-upload.yml" : "edit-item.yml"', app)
+        self.assertIn('value === "upload-first" ? "upload:1"', app)
+        self.assertIn('data-manage-cover="upload-first"', app)
+        self.assertNotIn("addManageLocalFiles", app)
+        self.assertNotIn("manage-local-images", page)
+        self.assertNotIn('type="file"', page)
+        self.assertIn("只在 GitHub 表单中选择文件一次", page)
+
+    def test_github_uploaded_image_as_cover_without_preselection(self):
+        """Selecting first GitHub upload as cover does not require upload_count."""
+        folder = self.make_item("prompt")
+        sections = {
+            "保留的现有图片": "library/prompts/sample/images/one.webp",
+            "封面图片地址": "upload:1",
+            "上传新图片": "![new](https://github.com/user-attachments/assets/first-new-123)",
+        }
+        with patch.object(manager, "fetch_upload", return_value=b"\\x89PNG\\r\\n\\x1a\\nimage"):
+            manager.edit_images(sections, "sample", "prompt")
+        meta = self.read_meta(folder)
+        self.assertEqual(len(meta["images"]), 2)
+        self.assertEqual(meta["cover"], meta["images"][1])
 
     def test_missing_staged_local_file_rejected_before_download(self):
         self.make_item("skill")

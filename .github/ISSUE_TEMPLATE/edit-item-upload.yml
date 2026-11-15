@@ -1,5 +1,5 @@
 name: 修改素材信息与图片（本地文件必传）
-description: 从图库选择了本地图片后使用。必须在 GitHub 页面重新上传全部图片，防止漏传导致 Actions 失败。
+description: 从图库管理页跳转，直接在 GitHub 页面选择一次图片，并把第一张作为封面。
 title: "[修改素材] "
 body:
   - type: markdown
@@ -8,7 +8,7 @@ body:
         从图库详情页「管理」打开时，各字段会自动填写当前内容。
         提交前请核对，只有仓库所有者提交的 Issue 才会触发自动修改。
         图片会发布到公开仓库，请勿上传私人内容或未经授权的图片。
-        **重要：网页中选择的本地图片只是预览，不会自动传到 GitHub。此表单必须重新选择图片才能提交。**
+        **请直接在本页面选择本地图片一次，无需在图库页面提前选择。**
   - type: input
     id: item_kind
     attributes:
@@ -66,30 +66,14 @@ body:
     id: cover_url
     attributes:
       label: 封面图片地址
-      description: 默认封面可填保留/新增图片地址，或编辑页自动生成的 upload:1、upload:2（表示第几张本地上传图片）。
+      description: 默认封面可填保留或新增图片地址，或使用 upload:1 表示本次在 GitHub 上传的第一张图片。
     validations:
       required: false
   - type: textarea
     id: new_image_urls
     attributes:
       label: 新增图片地址
-      description: 每行一个 GitHub 图片链接；可直接在下方上传图片。
-      render: text
-    validations:
-      required: false
-  - type: input
-    id: upload_count
-    attributes:
-      label: 本地图片上传数量
-      description: 编辑页自动填写。若填写 N，则必须在下方上传相同数量的图片，否则会拒绝保存。
-      placeholder: "0"
-    validations:
-      required: false
-  - type: textarea
-    id: upload_list
-    attributes:
-      label: 本地图片上传清单（按顺序）
-      description: 如果编辑页预选了本地图片，请按照此清单的顺序在下方重新选择图片；本地封面按上传顺序确定。
+      description: 每行一个 GitHub 图片链接；本地图片只在下方 GitHub 上传字段中选择一次。
       render: text
     validations:
       required: false
@@ -97,7 +81,7 @@ body:
     id: new_images
     attributes:
       label: 上传新图片
-      description: 必填！请重新上传图库中预选的本地文件，按上传清单顺序选择。PNG/JPG/WebP/GIF，单张不超过 8 MB，最多 10 张。
+      description: 直接在 GitHub 页面选择文件一次；第一张上传图片将成为封面。PNG/JPG/WebP/GIF，单张 ≤ 8 MB，最多 10 张。
     validations:
       required: true
       accept: ".png,.jpg,.jpeg,.webp,.gif"
