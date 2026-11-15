@@ -172,7 +172,7 @@ class ManageGalleryItemTests(unittest.TestCase):
             "封面图片地址": "upload:1",
             "上传新图片": "![new](https://github.com/user-attachments/assets/first-new-123)",
         }
-        with patch.object(manager, "fetch_upload", return_value=b"\\x89PNG\\r\\n\\x1a\\nimage"):
+        with patch.object(manager, "fetch_upload", return_value=b"\x89PNG\r\n\x1a\nimage"):
             manager.edit_images(sections, "sample", "prompt")
         meta = self.read_meta(folder)
         self.assertEqual(len(meta["images"]), 2)
