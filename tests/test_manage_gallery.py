@@ -142,6 +142,18 @@ class ManageGalleryItemTests(unittest.TestCase):
         self.assertEqual(meta["cover"], meta["images"][2])
         self.assertTrue((folder / meta["cover"]).is_file())
 
+    def test_github_form_requires_reupload_for_local_image_edits(self):
+        """Local previews are not GitHub attachments; enforce upload before creating an Issue."""
+        root = Path(__file__).resolve().parents[1]
+        required_template = (root / ".github/ISSUE_TEMPLATE/edit-item-upload.yml").read_text(encoding="utf-8")
+        optional_template = (root / ".github/ISSUE_TEMPLATE/edit-item.yml").read_text(encoding="utf-8")
+        upload_block = required_template.split("  - type: upload", 1)[1].split("  - type: checkboxes", 1)[0]
+        optional_block = optional_template.split("  - type: upload", 1)[1].split("  - type: checkboxes", 1)[0]
+        self.assertIn("      required: true", upload_block)
+        self.assertIn("      required: false", optional_block)
+        app = (root / "site/app.js").read_text(encoding="utf-8")
+        self.assertIn('params.set("template", locals.length ? "edit-item-upload.yml" : "edit-item.yml")', app)
+
     def test_missing_staged_local_file_rejected_before_download(self):
         self.make_item("skill")
         with self.assertRaisesRegex(ValueError, "实际上传 0 张"):

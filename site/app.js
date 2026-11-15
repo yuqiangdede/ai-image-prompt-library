@@ -371,7 +371,7 @@
     const guide = $("manage-local-upload-guide");
     guide.hidden = !locals.length;
     guide.textContent = locals.length
-      ? "GitHub 确认页还需重新上传以下 " + locals.length + " 张图片（顺序必须一致）：\n" +
+      ? "GitHub 表单必填上传区域：请按顺序重新上传以下 " + locals.length + " 张图片（顺序必须一致）：\n" +
         locals.map((image, index) => (index + 1) + ". " + image.file.name).join("\n")
       : "";
     const coverLabel = manage.cover
@@ -519,7 +519,7 @@
     const chosenCover = kept.find(image => image.src === manage.cover);
     const coverRef = chosenCover?.isLocal ? "upload:" + (locals.indexOf(chosenCover) + 1) : manage.cover;
     const params = new URLSearchParams();
-    params.set("template", "edit-item.yml");
+    params.set("template", locals.length ? "edit-item-upload.yml" : "edit-item.yml");
     params.set("item_kind", manage.item.kind);
     params.set("item_slug", manage.item.slug);
     params.set("item_title", title);
@@ -535,7 +535,7 @@
     }
     const url = state.catalog.repository_url + "/issues/new?" + params.toString();
     const message = locals.length
-      ? "本地文件尚未上传！请在打开的 GitHub 确认页找到「上传新图片」，按清单顺序再次选择同样的 " + locals.length + " 张图片并提交 Issue；漏传会使操作失败。"
+      ? "注意：网页中仅预览了图片，并未上传到 GitHub。新页面的「上传新图片」为必填项，请按清单顺序再次选择同样的 " + locals.length + " 张图片，确认附件出现后再提交。"
       : "已尝试打开 GitHub 确认页。请检查图片列表，必要时在页面上传新图片，然后提交 Issue。";
     showManageStatus(message, url);
     window.open(url, "_blank", "noopener,noreferrer");
