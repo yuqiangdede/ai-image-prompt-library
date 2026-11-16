@@ -19,10 +19,13 @@
   </header>
   <main class="shell">
     <section class="workspace" aria-label="图库浏览">
-      <div class="workspace-head"><div><p class="eyebrow small">PROMPT & SKILL LIBRARY</p><h2>灵感素材库</h2><p class="workspace-intro">按效果图查找 Prompt、Skill，快速复制创作方法。</p></div><div class="workspace-count" aria-label="图库素材数量"><strong id="hero-count">—</strong><span>个素材</span></div></div>
+      <div class="workspace-head">
+        <div class="workspace-title"><p class="eyebrow small">PROMPT & SKILL LIBRARY</p><h2>灵感素材库</h2></div>
       <div class="tools">
         <label class="search"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="搜索风格、Skill、标签、提示词…" autocomplete="off" aria-label="搜索素材"><kbd>/</kbd></label>
         <select id="sort" aria-label="排序方式"><option value="new">最近更新</option><option value="az">名称 A—Z</option></select>
+      </div>
+        <div class="workspace-count" aria-label="图库素材数量"><strong id="hero-count">—</strong><span>个素材</span></div>
       </div>
       <div class="tabs-row">
         <nav class="tabs" id="nav-tabs" aria-label="素材类型">
@@ -30,6 +33,8 @@
           <button type="button" data-type="skill">Skills <span id="count-skill">0</span></button>
           <button type="button" data-type="prompt">Prompts <span id="count-prompt">0</span></button>
           <button type="button" data-type="favorites">♡ 收藏 <span id="count-favorites">0</span></button>
+          <span class="tabs-divider" aria-hidden="true"></span>
+          <span id="browse-tabs" class="browse-tabs"></span>
         </nav>
         <div class="view-switch view-switch-tabs" id="view-switch" role="group" aria-label="图标大小">
           <button type="button" data-view="large" aria-pressed="true" title="大图标" aria-label="大图标">
@@ -40,7 +45,6 @@
           </button>
         </div>
       </div>
-      <div class="filters"><div id="category-nav" class="categories"></div><button id="reset-filter" class="clear" hidden>清除筛选 ×</button></div>
       <div class="result-info"><span id="result-count">正在读取素材…</span><span>点开图片，复制创作方法 ↗</span><div class="view-switch view-switch-inline" role="group" aria-label="图标大小">
         <button type="button" data-view="large" aria-pressed="true" title="大图标" aria-label="大图标">
           <svg viewBox="0 0 18 18" fill="currentColor" aria-hidden="true" focusable="false"><rect x="2" y="2" width="6" height="6" rx="1"/><rect x="10" y="2" width="6" height="6" rx="1"/><rect x="2" y="10" width="6" height="6" rx="1"/><rect x="10" y="10" width="6" height="6" rx="1"/></svg>
