@@ -345,3 +345,30 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .modal-top #close-modal{display:grid;place-items:center;flex:0 0 34px;min-width:34px;padding:0}
 @media(max-width:600px){.modal-top{gap:8px}.detail-top-actions{gap:6px}.modal-top .detail-edit-button{min-width:92px;height:36px;padding:0 9px;font-size:var(--text-xs)}.detail-edit-button{padding:0 9px;font-size:var(--text-xs)}.card-actions{gap:4px}}
 
+
+/* 浏览器首页：标题与搜索同排，分类与 Skills/Prompts/收藏同排。 */
+.workspace-head{align-items:center;gap:22px}
+.workspace-head .workspace-title{flex:0 0 218px;min-width:0}
+.workspace-head .tools{flex:1 1 480px;max-width:none;min-width:200px;margin:0}
+.workspace-head .workspace-count{margin-left:0}
+.tabs-row{margin:20px 0 12px}
+.tabs{gap:17px;align-items:stretch;scrollbar-width:thin;scrollbar-color:#c6d0c2 transparent}
+.tabs::-webkit-scrollbar{height:3px}
+.tabs::-webkit-scrollbar-thumb{background:#c6d0c2;border-radius:3px}
+.tabs button{flex:none;padding:0 1px 13px;font-size:13px}
+.tabs button:hover{color:var(--color-primary)}
+.tabs-divider{flex:none;align-self:center;width:1px;height:22px;background:var(--color-line);margin:-9px 2px 0}
+.browse-tabs{display:contents}
+.result-info{margin:12px 0 16px}
+@media(max-width:900px){
+ .workspace-head{gap:14px}
+ .workspace-head .workspace-title{flex-basis:170px}
+ .workspace-head .tools{flex-basis:300px}
+}
+@media(max-width:750px){
+ .workspace-head .workspace-title{flex:1 1 auto}
+ .workspace-head .tools{order:3;flex:1 0 100%;min-width:0;margin:4px 0 0}
+ .workspace-head .workspace-count{order:2;margin-top:20px}
+ .tabs-row{margin-top:16px}
+ .tabs{gap:15px}
+}
