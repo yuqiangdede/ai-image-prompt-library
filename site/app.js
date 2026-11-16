@@ -3,6 +3,47 @@
   "use strict";
   const $ = id => document.getElementById(id);
   const state = { items: [], catalog: null, search: "", kind: "all", category: "all", sort: "new", view: "large", favorites: new Set(), selected: null, text: "", manage: null };
+
+  // 大分类可交叉归属；旧素材的 category 和 tags 保留用于详情和搜索。
+  const browseGroups = [
+    ["poster","海报类"],["person","人物生图类"],["retouch","人像优化类"],
+    ["photo","摄影风格类"],["art","插画艺术类"],["scene","场景建筑类"],
+    ["brand","品牌产品类"],["other","其他"]
+  ];
+  // 已收录素材人工归类；添加新素材时由下方关键词规则兜底。
+  const browseSlugs = {
+    poster: `double-layer-fashion-portrait-poster haidayu-infrared-camera-epic-silhouette haidayu-person-epic-silhouette haiwei-xinjie-fashion-magazine-cover hangzhou-watercolor-travel-postcard mid-autumn-west-lake-paper-collage-poster photo-mogu-boneless-diptych photo-shadow-puppet-diptych urban-street-botanical-stipple-diptych vintage-color-lithograph-poster black-white-mens-fashion-nine-grid heytea-doodle-poster mono-color oriental-editorial-poster photo-abstract-editorial photo-relic-editorial xxd-panel-115`,
+    person: `autumn-1970s-cinematic-fashion-portrait basketball-stands-broadcast-candid black-and-white-editorial-portrait black-white-four-pose-fine-art-portrait black-white-mens-fashion-nine-grid blue-hour-ferry-film-still blue-sky-archery-fashion-editorial crimson-low-angle-cinematic-portrait cyan-veil-bamboo-hat-hanfu-portrait double-layer-fashion-portrait-poster haidayu-person-epic-silhouette haiwei-xinjie-fashion-magazine-cover luxury-commercial-fashion-studio-portrait ming-phoenix-crown-bridal-portrait night-train-neon-cinematic-portrait peach-coral-floral-ballroom-fashion-portrait pink-purple-geometric-fashion-portrait professional-business-studio-portrait rainy-city-overpass-cinematic-film-still republic-era-night-alley-portrait silver-haired-wandering-swordswoman-film-portrait stone-bridge-parasol-hanfu-portrait studio-pose-transfer-shh summer-sunlit-cinematic-fine-art-portrait water-margin-heroes-selfie`,
+    retouch: `autumn-1970s-cinematic-fashion-portrait basketball-stands-broadcast-candid black-and-white-editorial-portrait black-white-four-pose-fine-art-portrait black-white-mens-fashion-nine-grid double-layer-fashion-portrait-poster luxury-commercial-fashion-studio-portrait night-train-neon-cinematic-portrait professional-business-studio-portrait rainy-city-overpass-cinematic-film-still studio-pose-transfer-shh photo-abstract-editorial photo-relic-editorial`,
+    photo: `autumn-1970s-cinematic-fashion-portrait basketball-stands-broadcast-candid black-and-white-editorial-portrait black-white-four-pose-fine-art-portrait black-white-mens-fashion-nine-grid blue-hour-ferry-film-still blue-sky-archery-fashion-editorial crimson-low-angle-cinematic-portrait cyan-veil-bamboo-hat-hanfu-portrait luxury-commercial-fashion-studio-portrait ming-phoenix-crown-bridal-portrait night-train-neon-cinematic-portrait peach-coral-floral-ballroom-fashion-portrait pink-purple-geometric-fashion-portrait professional-business-studio-portrait rainy-city-overpass-cinematic-film-still raw-black-and-white-street-snapshot republic-era-night-alley-portrait silver-haired-wandering-swordswoman-film-portrait stone-bridge-parasol-hanfu-portrait summer-sunlit-cinematic-fine-art-portrait water-margin-heroes-selfie haiwei-xinjie-perfume-product-photo`,
+    art: `battlefield-assault-pencil-storyboard hangzhou-watercolor-travel-postcard mid-autumn-west-lake-paper-collage-poster photo-mogu-boneless-diptych photo-shadow-puppet-diptych photo-to-expressive-charcoal-sketch photo-to-hand-drawn-isometric-map science-encyclopedia-infographic urban-street-botanical-stipple-diptych vintage-color-lithograph-poster vintage-travel-watercolor-photo water-margin-heroes-selfie hand-drawn-styles heytea-doodle-poster mono-color oriental-editorial-poster photo-abstract-editorial photo-relic-editorial xxd-panel-115`,
+    scene: `blue-hour-ferry-film-still map-arrow-to-real-world-view photo-to-hand-drawn-isometric-map rainy-city-overpass-cinematic-film-still panorama-generation yingzao`,
+    brand: `haidayu-infrared-camera-epic-silhouette haidayu-person-epic-silhouette haiwei-xinjie-fashion-magazine-cover haiwei-xinjie-perfume-product-photo rainbow-bread-bakery-logo heytea-doodle-poster`
+  };
+  const browseIndex = new Map();
+  for (const [group, list] of Object.entries(browseSlugs)) {
+    for (const slug of list.split(" ")) {
+      if (!browseIndex.has(slug)) browseIndex.set(slug, []);
+      browseIndex.get(slug).push(group);
+    }
+  }
+  function browseOf(item) {
+    if (Array.isArray(item.browse_categories) && item.browse_categories.length) {
+      const valid = item.browse_categories.filter(id => browseGroups.some(group => group[0] === id));
+      if (valid.length) return [...new Set(valid)];
+    }
+    if (browseIndex.has(item.slug)) return browseIndex.get(item.slug);
+    const words = [item.title, item.category, ...(item.tags || [])].join(" ");
+    const ids = [];
+    if (/海报|封面|画报|拼贴|明信片|poster/i.test(words)) ids.push("poster");
+    if (/人物|人像|肖像|写真|汉服|古风|角色|模特|portrait|骑士|剑士/i.test(words)) ids.push("person");
+    if (/人像优化|换装|姿态迁移|证件照|修图|形象照|照片转绘/i.test(words)) ids.push("retouch");
+    if (/摄影|照片|胶片|电影|街拍|film|photo/i.test(words)) ids.push("photo");
+    if (/插画|手绘|水彩|线稿|草图|拼贴|绘画|艺术|风格迁移|科普|图鉴/i.test(words)) ids.push("art");
+    if (/全景|建筑|地图|空间|场景|城市|景观|三维|3D/i.test(words)) ids.push("scene");
+    if (/品牌|产品|商品|电商|广告|包装|logo/i.test(words)) ids.push("brand");
+    return ids.length ? [...new Set(ids)] : ["other"];
+  }
   const favoriteKey = "prompt-gallery-favorites-v2";
   const viewKey = "prompt-gallery-view-v1";
   const promptUrlLimit = 6000; // GitHub errors on very long issue-prefill URLs
@@ -75,20 +116,21 @@
     return state.items.filter(item => {
       if (state.kind === "favorites" && !state.favorites.has(item.id)) return false;
       if (state.kind !== "all" && state.kind !== "favorites" && state.kind !== item.kind) return false;
-      if (state.category !== "all" && state.category !== item.category) return false;
+      if (state.category !== "all" && !browseOf(item).includes(state.category)) return false;
       if (q && ![item.title, item.description, item.category, item.model, ...(item.tags || []), item.search_text].join(" ").toLocaleLowerCase().includes(q)) return false;
       return true;
     }).sort((a, b) => state.sort === "az"
       ? a.title.localeCompare(b.title, "zh-CN")
       : String(b.updated_at).localeCompare(String(a.updated_at)) || a.title.localeCompare(b.title, "zh-CN"));
   }
-  function renderCategories() {
-    const counts = new Map();
-    for (const item of state.items) counts.set(item.category, (counts.get(item.category) || 0) + 1);
-    const categories = [["全部主题", "all", state.items.length], ...[...counts].sort((a,b) => a[0].localeCompare(b[0],"zh-CN")).map(([name,count]) => [name,name,count])];
-    $("category-nav").innerHTML = categories.map(([label,value,count]) =>
-      '<button type="button" data-category="' + escapeHtml(value) + '" class="' + (state.category === value ? "active" : "") + '">' + escapeHtml(label) + '<span class="count">' + count + "</span></button>"
-    ).join("");
+  function renderBrowseCategories() {
+    const counts = new Map(browseGroups.map(([id]) => [id, 0]));
+    for (const item of state.items) for (const id of browseOf(item)) counts.set(id, counts.get(id) + 1);
+    $("browse-tabs").innerHTML = browseGroups.filter(([id]) => counts.get(id)).map(([id, label]) => {
+      const active = state.category === id;
+      return '<button type="button" data-category="' + id + '" aria-pressed="' + active +
+        '" class="' + (active ? "active" : "") + '">' + label + ' <span>' + counts.get(id) + '</span></button>';
+    }).join("");
   }
   function render() {
     const results = listFiltered();
@@ -98,9 +140,12 @@
     $("count-prompt").textContent = state.items.filter(x => x.kind === "prompt").length;
     $("count-favorites").textContent = state.favorites.size;
     $("result-count").textContent = "共 " + results.length + " 个结果";
-    $("reset-filter").hidden = state.kind === "all" && state.category === "all" && !state.search;
-    document.querySelectorAll("#nav-tabs [data-type]").forEach(node => node.classList.toggle("active", state.kind === node.dataset.type));
-    renderCategories();
+    document.querySelectorAll("#nav-tabs [data-type]").forEach(node => {
+      const active = state.category === "all" && state.kind === node.dataset.type;
+      node.classList.toggle("active", active);
+      node.setAttribute("aria-pressed", String(active));
+    });
+    renderBrowseCategories();
     if (!results.length) {
       $("gallery").innerHTML = '<div class="empty">暂无匹配的素材<p>试试其他关键词，或清除筛选条件。</p></div>';
       return;
@@ -695,7 +740,7 @@
     $("nav-tabs").addEventListener("click", event => {
       const node = event.target.closest("[data-type]");
       if (!node) return;
-      state.kind = node.dataset.type; render();
+      state.kind = node.dataset.type; state.category = "all"; render();
     });
     document.querySelectorAll(".view-switch").forEach(group => {
       group.addEventListener("click", event => {
@@ -705,16 +750,13 @@
         applyView(true);
       });
     });
-    $("category-nav").addEventListener("click", event => {
+    $("browse-tabs").addEventListener("click", event => {
       const node = event.target.closest("[data-category]");
       if (!node) return;
-      state.category = node.dataset.category; render();
+      state.kind = "all"; state.category = node.dataset.category; render();
     });
     $("search").addEventListener("input", event => { state.search = event.target.value; render(); });
     $("sort").addEventListener("change", event => { state.sort = event.target.value; render(); });
-    $("reset-filter").addEventListener("click", () => {
-      state.kind = "all"; state.category = "all"; state.search = ""; $("search").value = ""; render();
-    });
     $("gallery").addEventListener("click", event => {
       const dot = event.target.closest("[data-slide-to]");
       if (dot) {
