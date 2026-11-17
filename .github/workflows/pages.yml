@@ -14,6 +14,8 @@ on:
     - cron: '23 4 * * *'
   issues:
     types: [opened]
+  issue_comment:
+    types: [created]
 
 permissions:
   contents: write
@@ -28,13 +30,20 @@ concurrency:
 jobs:
   build-and-deploy:
     if: >-
-      github.event_name != 'issues' ||
-      (github.event.issue.user.login == github.repository_owner &&
+      (github.event_name != 'issues' && github.event_name != 'issue_comment') ||
+      (github.event_name == 'issues' &&
+        github.event.issue.user.login == github.repository_owner &&
         (startsWith(github.event.issue.title, '[导入 Skill]') ||
          startsWith(github.event.issue.title, '[添加提示词]') ||
          startsWith(github.event.issue.title, '[修改素材]') ||
          startsWith(github.event.issue.title, '[修改图片]') ||
-         startsWith(github.event.issue.title, '[删除 Skill]')))
+         startsWith(github.event.issue.title, '[删除 Skill]'))) ||
+      (github.event_name == 'issue_comment' &&
+        github.event.issue.state == 'open' &&
+        github.event.issue.user.login == github.repository_owner &&
+        github.event.comment.user.login == github.repository_owner &&
+        startsWith(github.event.issue.title, '[待上传封面]') &&
+        contains(github.event.comment.body, 'https://github.com/user-attachments/assets/'))
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -92,7 +101,9 @@ jobs:
           fi
       - name: Add prompt from owner issue
         id: add_prompt
-        if: github.event_name == 'issues' && startsWith(github.event.issue.title, '[添加提示词]')
+        if: >-
+          (github.event_name == 'issues' && startsWith(github.event.issue.title, '[添加提示词]')) ||
+          (github.event_name == 'issue_comment' && startsWith(github.event.issue.title, '[待上传封面]'))
         run: |
           python scripts/add_prompt.py
           git add library/prompts
@@ -138,7 +149,7 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
       - name: Comment on failed owner request
-        if: failure() && github.event_name == 'issues' && (steps.import_skill.outcome == 'failure' || steps.add_prompt.outcome == 'failure' || steps.manage_skill.outcome == 'failure')
+        if: failure() && (github.event_name == 'issues' || github.event_name == 'issue_comment') && (steps.import_skill.outcome == 'failure' || steps.add_prompt.outcome == 'failure' || steps.manage_skill.outcome == 'failure')
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
@@ -161,14 +172,14 @@ jobs:
           fi
           gh issue comment "$ISSUE_NUMBER" --body "自动处理失败。$HINT"
       - name: Comment on failed deployment after owner request
-        if: failure() && github.event_name == 'issues' && (steps.import_skill.outcome == 'success' || steps.add_prompt.outcome == 'success' || steps.manage_skill.outcome == 'success') && steps.deployment.outcome != 'success'
+        if: failure() && (github.event_name == 'issues' || github.event_name == 'issue_comment') && (steps.import_skill.outcome == 'success' || steps.add_prompt.outcome == 'success' || steps.manage_skill.outcome == 'success') && steps.deployment.outcome != 'success'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
           gh issue comment "$ISSUE_NUMBER" --body "请求已处理，但构建或部署失败。请查看 Actions 日志；修复后重新运行工作流即可。"
       - name: Confirm successful owner request
-        if: success() && github.event_name == 'issues'
+        if: success() && (github.event_name == 'issues' || github.event_name == 'issue_comment')
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
@@ -177,6 +188,7 @@ jobs:
           case "$ISSUE_TITLE" in
             "[导入 Skill]"*) MESSAGE="Skill 已自动导入。";;
             "[添加提示词]"*) MESSAGE="提示词已自动收录。";;
+            "[待上传封面]"*) MESSAGE="提示词及上传封面已自动收录。";;
             "[修改素材]"*) MESSAGE="素材信息与图片已更新，部署完成后刷新图库即可看到。";;
             "[修改图片]"*) MESSAGE="图片已更新，部署完成后刷新图库即可看到。";;
             "[删除 Skill]"*) MESSAGE="Skill 已从图库删除。";;
