@@ -1,6 +1,6 @@
 {
-  "title": "照片转粗粝炭笔素描｜强烈光影与手绘速写肌理",
-  "description": "上传人物、动漫角色或其他主体照片，转换为黑白炭笔素描。强调粗粝笔触、强烈明暗、大胆线条、炭粉涂抹渐变与速写本杂痕；示例为动态持剑角色。",
+  "title": "照片转粗粝炭笔素描｜表现性线条与速写本肌理",
+  "description": "上传人物、动漫角色或其他主体照片，转换为黑白炭笔素描，突出粗粝笔触、戏剧性明暗、大胆线条与速写本肌理。双封面展示欢乐少女原始彩色插画与炭笔转换效果。",
   "category": "艺术风格转换 / 炭笔素描",
   "tags": [
     "照片风格转换",
@@ -16,10 +16,11 @@
     "参考图一致性"
   ],
   "model": "GPT 图像生成",
-  "updated_at": "2026-11-14",
+  "updated_at": "2026-11-17",
   "cover": "images/cover.webp",
   "images": [
-    "images/cover.webp"
+    "images/cover.webp",
+    "images/original-color.webp"
   ],
   "related_skills": []
 }
