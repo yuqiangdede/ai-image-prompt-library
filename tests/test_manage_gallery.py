@@ -235,9 +235,9 @@ class StagedPromptCoverTests(unittest.TestCase):
                 "state": "open",
                 "user": {"login": "yuqiangdede"},
                 "body": (
-                    "### 标题（显示名称）\\n\\nexample\\n\\n"
-                    "### 确认\\n\\n"
-                    "- [x] 我确认这段提示词可以公开，封面图有权在本仓库展示\\n"
+                    "### 标题（显示名称）\n\nexample\n\n"
+                    "### 确认\n\n"
+                    "- [x] 我确认这段提示词可以公开，封面图有权在本仓库展示\n"
                 ),
             },
             "comment": {
@@ -248,8 +248,9 @@ class StagedPromptCoverTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             event_file = Path(tmp) / "issue.json"
             event_file.write_text(json.dumps(event, ensure_ascii=False), encoding="utf-8")
-            with patch.dict(os.environ, {"GITHUB_EVENT_PATH": str(event_file)}), \\
-                 patch.object(prompt_adder, "add_prompt", return_value=("example", "example")) as add:
+            with patch.dict(os.environ, {"GITHUB_EVENT_PATH": str(event_file)}), patch.object(
+                prompt_adder, "add_prompt", return_value=("example", "example")
+            ) as add:
                 prompt_adder.main()
         self.assertIn("https://github.com/user-attachments/assets/", add.call_args.args[0]["cover_file"])
         self.assertEqual(add.call_args.args[0]["cover_url"], "")
