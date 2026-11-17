@@ -55,7 +55,7 @@ GitHub Git Data API 的关键操作顺序：
 
 ## 四、备用方案：GitHub Issue + Actions
 
-只有直传链路确实不可用时，再使用现存的 [Issue 表单与 Actions 机制](../../../README.md#从-chatgpt-生成高清图后上传到图库单次-github-附件)。GitHub Issue 的附件需是真实 `user-attachments` 链接；只提交本地文件名、沙盒路径或 `upload:1` 但没有附件会失败。以前 Issue #19 经 Issue #21 复用真实附件后成功；Issue #13 因未实际附加文件而失败。
+只有直传链路确实不可用时，再使用现存的 [Issue 表单与 Actions 机制](../../../README.md)。GitHub Issue 的附件需是真实 `user-attachments` 链接；只提交本地文件名、沙盒路径或 `upload:1` 但没有附件会失败。以前 Issue #19 经 Issue #21 复用真实附件后成功；Issue #13 因未实际附加文件而失败。
 
 项目已经支持将**只含一张 WebP** 的 ZIP 上传到 `[待上传封面]` Issue 评论，由 Actions 解包并存储原 WebP。这是备用，不应代替默认直传。
 
