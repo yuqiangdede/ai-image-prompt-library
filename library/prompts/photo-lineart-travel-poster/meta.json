@@ -17,9 +17,10 @@
   ],
   "model": "GPT 图像生成",
   "updated_at": "2026-11-17",
-  "cover": "images/upload-d42f761565582922.png",
+  "cover": "images/cover-01-travel-poster-hd.png",
   "images": [
-    "images/upload-d42f761565582922.png"
+    "images/cover-01-travel-poster-hd.png",
+    "images/cover-02-original-photo-hd.jpg"
   ],
   "related_skills": []
 }
