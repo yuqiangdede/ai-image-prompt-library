@@ -104,12 +104,19 @@ jobs:
         id: manage_skill
         if: github.event_name == 'issues' && (startsWith(github.event.issue.title, '[修改素材]') || startsWith(github.event.issue.title, '[修改图片]') || startsWith(github.event.issue.title, '[删除 Skill]'))
         run: |
-          python scripts/manage_skill.py 2>&1 | tee "$RUNNER_TEMP/manage-skill.log"
-          git add library
-          if ! git diff --cached --quiet; then
-            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "chore(gallery): apply owner request #${{ github.event.issue.number }}"
-            git push origin HEAD:main
-          fi
+          {
+            python scripts/manage_skill.py
+            git add library
+            if ! git diff --cached --quiet; then
+              git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "chore(gallery): apply owner request #${{ github.event.issue.number }}"
+              if ! git push origin HEAD:main; then
+                echo "WARN: Push rejected; fetching and rebasing onto latest main." >&2
+                git fetch origin main
+                git rebase origin/main
+                git push origin HEAD:main
+              fi
+            fi
+          } 2>&1 | tee "$RUNNER_TEMP/manage-skill.log"
       - name: Synchronize allowlisted upstream files
         if: github.event_name == 'push' || github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.sync_upstream)
         run: |
@@ -146,8 +153,11 @@ jobs:
             *) HINT="详细原因见 Actions 日志。";;
           esac
           if [[ "$ISSUE_TITLE" == "[修改素材]"* || "$ISSUE_TITLE" == "[修改图片]"* ]]; then
-            DETAIL=$(grep -m 1 '^ERROR:' "$RUNNER_TEMP/manage-skill.log" 2>/dev/null || true)
-            if [ -n "$DETAIL" ]; then HINT="${DETAIL#ERROR: }"; fi
+            DETAIL=$(grep -E '^(ERROR:|fatal:|error:|remote: error:|! \[rejected\])' "$RUNNER_TEMP/manage-skill.log" 2>/dev/null | tail -n 1 || true)
+            if [ -z "$DETAIL" ]; then
+              DETAIL=$(tail -n 3 "$RUNNER_TEMP/manage-skill.log" 2>/dev/null | tr '\n' ' ' | cut -c 1-700 || true)
+            fi
+            if [ -n "$DETAIL" ]; then HINT="原因：$DETAIL"; fi
           fi
           gh issue comment "$ISSUE_NUMBER" --body "自动处理失败。$HINT"
       - name: Comment on failed deployment after owner request
