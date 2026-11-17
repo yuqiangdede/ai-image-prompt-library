@@ -5,11 +5,13 @@ The gallery is static, so the browser only prepares a prefilled Issue form.
 This script turns the confirmed Issue into library/prompts/<slug>/.
 """
 import hashlib
+import io
 import json
 import os
 import re
 import shutil
 import sys
+import zipfile
 from datetime import date, datetime, timezone
 from pathlib import Path
 
@@ -128,11 +130,33 @@ def generated_slug(title, prompt):
     return "prompt-{}-{}".format(datetime.now(timezone.utc).strftime("%Y%m%d"), digest)
 
 
+def unwrap_cover_upload(data):
+    """Accept a direct image or a one-image ZIP transport for WebP in comments.
+
+    GitHub issue comments support ZIP attachments even where direct WebP uploads
+    are unavailable. Keep the original WebP bytes, without recompression.
+    """
+    if not data.startswith(b"PK\\x03\\x04"):
+        return data
+    with zipfile.ZipFile(io.BytesIO(data)) as archive:
+        entries = [item for item in archive.infolist() if not item.is_dir()
+                   and not item.filename.startswith("__MACOSX/")
+                   and not item.filename.endswith("/.DS_Store")]
+        if len(entries) != 1 or not entries[0].filename.lower().endswith(".webp"):
+            raise ValueError("封面 ZIP 必须且只能包含一张 WebP 图片")
+        if entries[0].file_size > 8 * 1024 * 1024:
+            raise ValueError("ZIP 内的 WebP 超过 8 MB")
+        image = archive.read(entries[0])
+        if len(image) > 8 * 1024 * 1024 or image_extension(image) != ".webp":
+            raise ValueError("ZIP 内文件不是有效 WebP 或超过 8 MB")
+        return image
+
+
 def resolve_cover(sections):
     """Return ("file", bytes, extension) for an upload, or ("url", url)."""
     uploaded = attachment_urls(sections.get("cover_file", ""))
     if uploaded:
-        data = fetch_upload(uploaded[0])
+        data = unwrap_cover_upload(fetch_upload(uploaded[0]))
         return "file", data, image_extension(data)
     linked_text = str(sections.get("cover_url") or "").strip().strip("`").strip()
     if not linked_text:
@@ -143,7 +167,7 @@ def resolve_cover(sections):
             "封面图地址必须是 GitHub 图片链接（raw.githubusercontent.com，或 "
             "github.com 的 raw/blob / user-attachments 链接）")
     if linked.startswith("https://github.com/user-attachments/"):
-        data = fetch_upload(linked)
+        data = unwrap_cover_upload(fetch_upload(linked))
         return "file", data, image_extension(data)
     check_linked_image(linked)
     return "url", linked
