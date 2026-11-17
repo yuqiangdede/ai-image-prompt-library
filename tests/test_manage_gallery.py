@@ -1,11 +1,15 @@
 """Regression tests for shared Prompt / Skill metadata and image editor."""
+import io
 import json
+import os
 import tempfile
+import zipfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
 from scripts import manage_skill as manager
+from scripts import add_prompt as prompt_adder
 
 
 class ManageGalleryItemTests(unittest.TestCase):
@@ -200,6 +204,55 @@ class ManageGalleryItemTests(unittest.TestCase):
         self.make_item("prompt")
         with self.assertRaisesRegex(ValueError, "不存在"):
             manager.item_folder("sample", "skill")
+
+
+class StagedPromptCoverTests(unittest.TestCase):
+    def make_webp_zip(self, filenames=("cover.webp",)):
+        webp = b"RIFF" + (12).to_bytes(4, "little") + b"WEBP" + b"fake-webp-data"
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+            for name in filenames:
+                z.writestr(name, webp)
+        return buf.getvalue(), webp
+
+    def test_webp_zip_original_bytes_are_preserved(self):
+        packed, original = self.make_webp_zip()
+        self.assertEqual(prompt_adder.unwrap_cover_upload(packed), original)
+
+    def test_direct_webp_passes_through(self):
+        _, original = self.make_webp_zip()
+        self.assertEqual(prompt_adder.unwrap_cover_upload(original), original)
+
+    def test_multi_file_zip_is_rejected(self):
+        packed, _ = self.make_webp_zip(("first.webp", "second.webp"))
+        with self.assertRaisesRegex(ValueError, "只能包含一张"):
+            prompt_adder.unwrap_cover_upload(packed)
+
+    def test_staging_comment_makes_attachment_cover(self):
+        event = {
+            "issue": {
+                "title": "[待上传封面] example",
+                "state": "open",
+                "user": {"login": "yuqiangdede"},
+                "body": (
+                    "### 标题（显示名称）\\n\\nexample\\n\\n"
+                    "### 确认\\n\\n"
+                    "- [x] 我确认这段提示词可以公开，封面图有权在本仓库展示\\n"
+                ),
+            },
+            "comment": {
+                "user": {"login": "yuqiangdede"},
+                "body": "[webp.zip](https://github.com/user-attachments/assets/one-valid-upload)",
+            },
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            event_file = Path(tmp) / "issue.json"
+            event_file.write_text(json.dumps(event, ensure_ascii=False), encoding="utf-8")
+            with patch.dict(os.environ, {"GITHUB_EVENT_PATH": str(event_file)}), \\
+                 patch.object(prompt_adder, "add_prompt", return_value=("example", "example")) as add:
+                prompt_adder.main()
+        self.assertIn("https://github.com/user-attachments/assets/", add.call_args.args[0]["cover_file"])
+        self.assertEqual(add.call_args.args[0]["cover_url"], "")
 
 
 if __name__ == "__main__":
