@@ -369,7 +369,7 @@ def edit_images(sections, slug, kind="skill"):
 
 def delete_item(sections, slug, kind="skill"):
     """Remove exactly one item, its own images and its inbound references."""
-    if not re.search(r"^\s*-\s*\[[xX]\]", section_value(sections, LABELS["confirm"]), re.M):
+    if not re.search(r"^\s*-\s*\[[xX]\]", (section_value(sections, LABELS["confirm"]) or section_value(sections, "删除确认")), re.M):
         raise PermissionError("删除操作需要先勾选确认")
     folder = item_folder(slug, kind)
     expected_title = (
