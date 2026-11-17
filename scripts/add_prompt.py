@@ -35,6 +35,7 @@ PROMPTS = ROOT / "library" / "prompts"
 REPO = os.environ.get("GITHUB_REPOSITORY", "yuqiangdede/ai-image-prompt-library")
 
 TITLE_PREFIX = "[添加提示词]"
+PENDING_PREFIX = "[待上传封面]"
 
 # Keep these headings unique: the script splits the Issue body on them, and a
 # prompt may itself contain ordinary "### " Markdown headings.
@@ -208,17 +209,34 @@ def main():
     event_path = os.environ.get("GITHUB_EVENT_PATH")
     if not event_path:
         raise ValueError("只能由仓库 GitHub Actions Issue 工作流触发")
-    issue = json.loads(Path(event_path).read_text(encoding="utf-8")).get("issue") or {}
+    event = json.loads(Path(event_path).read_text(encoding="utf-8"))
+    issue = event.get("issue") or {}
     actor = (issue.get("user") or {}).get("login")
-    if actor != REPO.split("/")[0]:
+    owner = REPO.split("/")[0]
+    if actor != owner:
         raise PermissionError("仅允许仓库所有者提交添加提示词任务")
     title = (issue.get("title") or "").strip()
-    if not title.startswith(TITLE_PREFIX):
+    comment = event.get("comment") or {}
+    staged_upload = bool(comment) and title.startswith(PENDING_PREFIX)
+    if staged_upload:
+        if (comment.get("user") or {}).get("login") != owner:
+            raise PermissionError("仅允许仓库所有者上传待收录素材的封面")
+        if issue.get("state") != "open":
+            raise ValueError("待上传封面的 Issue 必须处于开放状态")
+        uploads = attachment_urls(comment.get("body") or "")
+        if not uploads:
+            raise ValueError("评论中没有有效的 GitHub 图片附件，请上传 WebP/PNG/JPG/GIF 文件")
+    elif not title.startswith(TITLE_PREFIX):
         raise ValueError("Issue 标题必须以 {} 开头".format(TITLE_PREFIX))
     body = issue.get("body") or ""
     if len(body) > MAX_BODY_CHARS:
         raise ValueError("Issue 内容过长")
     sections = parse_issue_body(body)
+    if staged_upload:
+        # Reuse GitHub's authenticated issue-comment upload URL. No local
+        # filesystem path or uploaded filename is treated as image content.
+        sections["cover_file"] = "[封面图片]({})".format(uploads[0])
+        sections["cover_url"] = ""
     if not re.search(r"^\s*-\s*\[[xX]\]", sections.get("confirm", ""), re.M):
         raise PermissionError("请先勾选「确认」再提交")
     slug, prompt_title = add_prompt(sections)
