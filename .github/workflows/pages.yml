@@ -43,7 +43,8 @@ jobs:
         github.event.issue.user.login == github.repository_owner &&
         github.event.comment.user.login == github.repository_owner &&
         startsWith(github.event.issue.title, '[待上传封面]') &&
-        contains(github.event.comment.body, 'https://github.com/user-attachments/assets/'))
+        (contains(github.event.comment.body, 'https://github.com/user-attachments/assets/') ||
+         contains(github.event.comment.body, 'https://github.com/user-attachments/files/')))
     runs-on: ubuntu-latest
     environment:
       name: github-pages
