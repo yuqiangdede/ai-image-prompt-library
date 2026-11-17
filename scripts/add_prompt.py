@@ -136,7 +136,7 @@ def unwrap_cover_upload(data):
     GitHub issue comments support ZIP attachments even where direct WebP uploads
     are unavailable. Keep the original WebP bytes, without recompression.
     """
-    if not data.startswith(b"PK\\x03\\x04"):
+    if not data.startswith(b"PK\x03\x04"):
         return data
     with zipfile.ZipFile(io.BytesIO(data)) as archive:
         entries = [item for item in archive.infolist() if not item.is_dir()
