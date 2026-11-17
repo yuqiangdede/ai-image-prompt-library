@@ -80,6 +80,17 @@ python -m http.server 8000 --directory dist
 
 核心实现：`scripts/import_skill.py`、`.github/ISSUE_TEMPLATE/add-skill.yml`、`.github/workflows/pages.yml`。
 
+## 从 ChatGPT 生成高清图后上传到图库（单次 GitHub 附件）
+
+在聊天中生成的图片属于会话文件，不能把 `/mnt/data/` 路径当作 GitHub 公网图片地址。对于无法直接向仓库上传二进制的连接，使用以下可复用流程：
+
+1. 由仓库所有者创建标题以 `[待上传封面]` 开头的 Issue，在 Issue 正文预填「标题 / 简介 / 分类 / 标签 / 提示词正文 / slug / 确认」等标准表单字段。
+2. 将生成的高清图片保存为 WebP。由于 GitHub Issue 的普通评论附件不保证支持 WebP，可将**唯一一张 WebP** 打包成 ZIP（ZIP 和 WebP 图像内容均不超过 8 MB）；不重新压缩图片。
+3. 仓库所有者在该 Issue 的**评论区上传 ZIP 文件并发布评论**，附件应显示 GitHub 的 `user-attachments/assets/...` 地址。只粘贴本地文件名或沙盒路径无效。
+4. `pages.yml` 的 `issue_comment.created` 事件会验证 Issue 创建者与评论者均为仓库所有者，调用 `scripts/add_prompt.py` 下载附件、校验并解包唯一的 WebP、写入 `library/prompts/<slug>/images/cover.webp`、`meta.json` 与 `prompt.md`，提交 `main` 并在同一次工作流部署 Pages。成功后评论确认并关闭 Issue；失败时保留 Issue 供排查。
+
+普通 `[添加提示词]` 表单上传以及已有的 `[修改素材]` 处理流程保持不变。**不需要也不应把任何 GitHub Token 放入 Issue、网页或会话。**
+
 ## 从网页添加提示词（不用命令行）
 
 首页右上角新增「添加提示词」按钮。填写标题、简介、分类、标签、适用模型和提示词正文；封面图可填 GitHub 图片地址，也可以留空后到打开的 GitHub 页面直接上传。点「打开 GitHub 确认页」会预填 Issue 表单，仓库所有者确认提交一次，Actions 就会创建 `library/prompts/<slug>/`，写入 `prompt.md`、`meta.json` 和封面，然后重新构建发布。
