@@ -4,6 +4,10 @@ AI 生图 Prompt / Skill 图库：GitHub Pages 静态站（原生 HTML/CSS/JS）
 
 ## Agent skills
 
+### Image upload / cover materialization
+
+When a user asks to upload generated images, add a Prompt, or replace a cover, **first read** `docs/pocket/pitfalls/2026-11-18-chatgpt-image-direct-upload.md`. Prefer the verified direct WebP → Base64 bridge → GitHub Blob/Tree/Commit → `main` path and verify the exact GitHub Blob SHA plus final Actions success. Treat Issue upload as fallback; do not equate local conversion, an Issue, a Blob, a branch commit, and deployment. Keep actual generated image bytes and the user's full prompt intact.
+
 ### Issue tracker
 
 Issues and specs live in this repo's GitHub Issues (`gh` CLI, `yuqiangdede/ai-image-prompt-library`). See `docs/agents/issue-tracker.md`.

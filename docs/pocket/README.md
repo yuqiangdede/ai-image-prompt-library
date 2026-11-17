@@ -20,7 +20,7 @@ Pocket is the Markdown knowledge map for this project. Existing authoritative do
 | 自动导入 Skill | [scripts/import_skill.py](../../scripts/import_skill.py) | [add-skill.yml](../../.github/ISSUE_TEMPLATE/add-skill.yml) |
 | 从网页添加提示词 | [add-prompt.yml](../../.github/ISSUE_TEMPLATE/add-prompt.yml)、[scripts/add_prompt.py](../../scripts/add_prompt.py) | [site/app.js](../../site/app.js) |
 | 编辑 Prompt / Skill 标题、标签、多封面或删除 Skill | [scripts/manage_skill.py](../../scripts/manage_skill.py)、[site/app.js](../../site/app.js) 管理面板 | [edit-item.yml](../../.github/ISSUE_TEMPLATE/edit-item.yml)、[edit-skill.yml](../../.github/ISSUE_TEMPLATE/edit-skill.yml)（兼容）、[delete-skill.yml](../../.github/ISSUE_TEMPLATE/delete-skill.yml) |
-| 排查 Bug 或历史变更 | 尚无事件/踩坑记录 | 按需补 `docs/pocket/pitfalls/` |
+| 排查 Bug 或历史变更、ChatGPT 生成图片直传 GitHub | [2026-11-18 高清图片直传经验](pitfalls/2026-11-18-chatgpt-image-direct-upload.md)（accepted） | 确认 Git Blob SHA、main Commit 和 Actions 成功；其他踩坑按需补充 `docs/pocket/pitfalls/` |
 | 澄清或固化需求 | 尚无正式需求文档 | 按需补 `docs/pocket/requirements/` |
 | 记录不可逆架构决策 | 尚无 ADR | 按需补 `docs/pocket/adr/` |
 | 统一术语 | 尚无 `GLOSSARY.md` | 按需补 `docs/pocket/meta/glossary.md` |

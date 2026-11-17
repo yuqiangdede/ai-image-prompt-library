@@ -80,7 +80,13 @@ python -m http.server 8000 --directory dist
 
 核心实现：`scripts/import_skill.py`、`.github/ISSUE_TEMPLATE/add-skill.yml`、`.github/workflows/pages.yml`。
 
-## 从 ChatGPT 生成高清图后上传到图库（单次 GitHub 附件）
+## ChatGPT 生成图片后直传 GitHub（首选）
+
+**已验证成功（2026-11-18）：** 本项目支持 ChatGPT 生成图片经过高清 WebP 转换后，经受控的 Base64 文件中转与 GitHub Git Data API（`create_blob` → `create_tree` → `create_commit` → `update_ref`）直接写入 `main`，随后核对图片 Blob SHA 和 GitHub Actions 部署成功。不必再让用户手动上传 ZIP 到 GitHub Issue。
+
+后续执行图片上传/替换时，请优先参照 **[高清图片直传成功经验与验收清单](docs/pocket/pitfalls/2026-11-18-chatgpt-image-direct-upload.md)**；仅在当前连接确实不能传输图片时才采用下述 Issue 备用流程。
+
+## 从 ChatGPT 生成高清图后上传到图库（单次 GitHub 附件，备用）
 
 在聊天中生成的图片属于会话文件，不能把 `/mnt/data/` 路径当作 GitHub 公网图片地址。对于无法直接向仓库上传二进制的连接，使用以下可复用流程：
 
