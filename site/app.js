@@ -150,10 +150,13 @@
       $("gallery").innerHTML = '<div class="empty">暂无匹配的素材<p>试试其他关键词，或清除筛选条件。</p></div>';
       return;
     }
-    $("gallery").innerHTML = results.map(item => {
+    $("gallery").innerHTML = results.map((item, index) => {
       const coverSources = [...new Set([item.cover, ...(item.images || [])].filter(Boolean))];
+      /* 首屏 4 张优先加载，其余懒加载 */
+      const eager = index < 4;
       const image = coverSources.length
-        ? '<img loading="lazy" src="' + escapeHtml(address(coverSources[0])) + '" alt="' + escapeHtml(item.title) + ' 效果图">'
+        ? '<img' + (eager ? ' loading="eager" fetchpriority="high"' : ' loading="lazy"') +
+          ' src="' + escapeHtml(address(coverSources[0])) + '" alt="' + escapeHtml(item.title) + ' 效果图">'
         : '<span class="image-fallback">✳</span>';
       const coverDots = coverSources.length > 1
         ? '<div class="card-carousel-dots" role="group" aria-label="切换封面">' +
@@ -163,13 +166,14 @@
           '</div>'
         : '';
       const cardWidth = galleryCardWidth();
-      const chipMax = Math.max(1, Math.floor((cardWidth - 90) / (13 + 8)));
+      const chipMax = Math.max(1, Math.floor((cardWidth - 158) / (13 + 8)));
       const visibleTags = (item.tags || []).filter(tag => [...tag].reduce((s, c) => s + (c.charCodeAt(0) > 255 ? 2 : 1), 0) <= chipMax).slice(0, 2);
-      const chips = visibleTags.map(tag => '<span class="chip">' + escapeHtml(tag) + "</span>").join("");
+      const chips = '<span class="chip chip-kind">' + typeName(item) + "</span>" +
+        visibleTags.map(tag => '<span class="chip">' + escapeHtml(tag) + "</span>").join("");
       const fav = state.favorites.has(item.id);
       return '<article class="gallery-card" data-item-id="' + escapeHtml(item.id) + '" data-cover-index="0"><button class="gallery-card-open" type="button" data-open="' + escapeHtml(item.id) +
-        '"><div class="image-wrap">' + image + '<span class="image-label">' + typeName(item) +
-        '</span></div><div class="card-details"><h3>' + escapeHtml(item.title) + '</h3><p>' + escapeHtml(item.description) +
+        '"><div class="image-wrap">' + image +
+        '</div><div class="card-details"><h3>' + escapeHtml(item.title) + '</h3><p>' + escapeHtml(item.description) +
         '</p></div></button>' + coverDots + '<div class="card-foot"><div class="chips">' + chips + '</div>' +
         '<div class="card-actions"><button class="favorite-button ' + (fav ? "active" : "") + '" data-fav="' + escapeHtml(item.id) +
         '" aria-label="' + (fav ? "取消收藏" : "收藏") + '">' + (fav ? "♥" : "♡") + '</button></div></div></article>';
@@ -757,6 +761,16 @@
     });
     $("search").addEventListener("input", event => { state.search = event.target.value; render(); });
     $("sort").addEventListener("change", event => { state.sort = event.target.value; render(); });
+    /* 封面地址失效时退回品牌占位，避免相机/网络问题留下空白灰块 */
+    $("gallery").addEventListener("error", event => {
+      const img = event.target;
+      const wrap = img instanceof HTMLImageElement ? img.closest(".image-wrap") : null;
+      if (!wrap || !wrap.contains(img)) return;
+      const fallback = document.createElement("span");
+      fallback.className = "image-fallback";
+      fallback.textContent = "✳";
+      img.replaceWith(fallback);
+    }, true);
     $("gallery").addEventListener("click", event => {
       const dot = event.target.closest("[data-slide-to]");
       if (dot) {

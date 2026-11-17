@@ -72,12 +72,13 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .gallery[data-view="small"]{grid-template-columns:repeat(10,minmax(0,1fr));gap:12px}
 .gallery[data-view="small"] .gallery-card{border-radius:calc(var(--radius-card) - 2px);display:flex;flex-direction:column}
 .gallery[data-view="small"] .gallery-card-open{flex:1}
-.gallery[data-view="small"] .image-label{left:7px;top:7px;padding:4px 6px;font-size:var(--text-xs);letter-spacing:.6px}
 .gallery[data-view="small"] .card-details{padding:8px 8px 0}
 .gallery[data-view="small"] .card-details h3{margin:0;font-size:var(--text-sm);line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-wrap:balance}
 .gallery[data-view="small"] .card-details p{display:none}
 .gallery[data-view="small"] .card-foot{padding:5px 6px 7px;justify-content:flex-end;margin-top:auto;flex-wrap:nowrap}
-.gallery[data-view="small"] .chips{display:none}
+.gallery[data-view="small"] .chips{display:flex;gap:4px}
+.gallery[data-view="small"] .chip:not(.chip-kind){display:none}
+.gallery[data-view="small"] .chip-kind{padding:2px 4px;letter-spacing:0}
 .gallery[data-view="small"] .favorite-button{font-size:16px;min-width:28px;min-height:28px;padding:0;display:grid;place-items:center}
 .gallery-card{min-width:0;background:var(--color-surface);border:1px solid #ecede7;border-radius:var(--radius-card);overflow:hidden;box-shadow:var(--shadow-sm);transition:transform .2s,box-shadow .2s}
 .gallery-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-md)}
@@ -85,7 +86,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .image-wrap{height:auto;aspect-ratio:3/4;position:relative;overflow:hidden;background:#e2e6dc}
 .image-wrap img{width:100%;height:100%;object-fit:cover;transition:transform .3s}
 .gallery-card:hover .image-wrap img{transform:scale(1.03)}
-.image-label{position:absolute;left:12px;top:12px;background:#fffef8eb;padding:7px 10px;color:#3c503f;font-size:var(--text-sm);font-weight:850;letter-spacing:1px;border-radius:var(--radius-xs)}
+.chip-kind{flex:none;color:#3d4c23;background:#e9efcf;font-weight:850;letter-spacing:.7px;text-transform:uppercase}
 .card-details{padding:calc(var(--space-4) * var(--density)) calc(var(--space-4) * var(--density)) calc(var(--space-1) * var(--density))}
 .card-details h3{margin:0 0 8px;font-size:var(--text-card-title);line-height:1.4;font-weight:850;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;overflow-wrap:anywhere}
 .card-details p{margin:8px 0 0;font-size:var(--text-sm);line-height:1.6;color:var(--color-muted);min-height:36px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
@@ -182,7 +183,6 @@ button:disabled{opacity:.55;cursor:not-allowed}
   .tabs button{font-size:var(--text-xs)}
   .gallery{grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
   .gallery[data-view="small"]{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
-  .gallery[data-view="small"] .image-label{left:6px;top:6px;padding:3px 5px;font-size:var(--text-xs);letter-spacing:.4px}
   .gallery[data-view="small"] .card-details{padding:7px 7px 0}
   .gallery[data-view="small"] .card-details h3{font-size:var(--text-xs);line-height:1.3;text-wrap:wrap}
   .gallery[data-view="small"] .card-foot{padding:3px 5px 5px}
