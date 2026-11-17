@@ -215,6 +215,10 @@ class StagedPromptCoverTests(unittest.TestCase):
                 z.writestr(name, webp)
         return buf.getvalue(), webp
 
+    def test_github_zip_comment_files_url_is_recognized(self):
+        url = "https://github.com/user-attachments/files/21687137/mint-butterfly-hanfu-cover.zip"
+        self.assertEqual(manager.attachment_urls("[cover.zip]({})".format(url)), [url])
+
     def test_webp_zip_original_bytes_are_preserved(self):
         packed, original = self.make_webp_zip()
         self.assertEqual(prompt_adder.unwrap_cover_upload(packed), original)
