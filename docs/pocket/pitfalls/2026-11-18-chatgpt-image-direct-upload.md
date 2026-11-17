@@ -53,6 +53,26 @@ GitHub Git Data API 的关键操作顺序：
 | 用小预览图冒充高清封面 | 文件虽存在但损失用户要求的分辨率 | 保存原始像素尺寸的 WebP；缩略图只能做衍生图 |
 | 无法直传就让用户下载 ZIP、到 Issue 再上传 | 这是兜底流程，增加人工操作 | **优先尝试已验证的直传链路，确认当前能力不可用时才提供 Issue 备用方案** |
 
+### 2026-11-18 复盘：蓝天记忆海报首次未上传，重试成功
+
+**结论（有本次实际操作支持）：上次失败的直接原因是上传流程中途停止、未完成 Base64 桥接，不能归因于 GitHub 不支持二进制、文件过大或 GitHub Actions 故障。**
+
+- **上次实际停止位置：** 会话中的图片已生成/准备为本地 WebP，但此前回答仅检查了仓库读写能力及 `create_blob` 等接口，未把 Base64 图片内容实际放入可读取的文件连接器，再读取并提交到 `create_blob(encoding="base64")`；没有可核验的图片 Blob、Tree、main Commit 或部署记录。因此“无法直接上传图片”的判断过早，属于**能力探查不完整 + 流程未执行完毕**，不是已验证的服务端错误。
+- **本次突破点：** 用 `files__manage_library` 的 `upload(container_path=..., destination_path=...)` 把既有的 Base64 文本中转文件加入临时文件库，`files__list(surface="library")` 找到实际 `file_id`，`files__read` 以起始行 1、101、201、301、401、501、601 分批读取，共 **618 行**。注意读取接口的 `content` 项可能自身包含换行；按行段顺序拼接，再移除全部 Base64 空白字符，必须校验字符数、合法字符和 4 的整除性。大段内容不得直接输出给聊天界面，以防截断。
+- **实际验收值：** Base64 **592,624 字符** → WebP **444,466 字节**、**1086×1448**；图片 Git Blob SHA **`61f572fed666af9ea4e07c89fdb4b45c07c3cbdc`**，与预期 Blob SHA 一致。封面元数据与 `prompt.md` 同批提交。
+- **真正写入仓库：** [main 提交 `57b9b90196ed42f75c820f971421a1d2be334daa`](https://github.com/yuqiangdede/ai-image-prompt-library/commit/57b9b90196ed42f75c820f971421a1d2be334daa)，[封面文件](https://github.com/yuqiangdede/ai-image-prompt-library/blob/main/library/prompts/sky-memory-post-internet-lofi-diptych/images/cover.webp)。提交后重新读取 `main`，图片 `cover.webp`、`meta.json`、`prompt.md` 三文件存在，图片 SHA 匹配，`meta.json` 的 `cover` 和 `images` 正确。
+- **发布验收：** [Actions #44190229199](https://github.com/yuqiangdede/ai-image-prompt-library/actions/runs/44190229199)，与该 main Commit 对应，`status=completed`、`conclusion=success`。中转文件在文件库里执行删除后结果为 **moved to trash**，不是已证明永久删除。
+
+**明确区分已证实与未证实：** 旧尝试中并无证据表明 GitHub Blob API 报错、Base64 因长度被截断、Actions 构建失败或服务权限拒绝；这些都不应写成根因。旧尝试的确定事实是**缺少图片数据中转及后续提交动作**；本次成功验证了这些步骤可以打通。
+
+**防再犯硬规则：**
+
+1. 发现本地文件路径不能直接传入 GitHub 时，先尝试 `container_path → files__manage_library.upload → files__list → files__read` 的受控 Base64 桥接；只有逐项排查确实不可用后，才回退 Issue + Actions。
+2. 分段读取时检查 `total_lines`、`next_start_line`、每段范围连续性、拼接后 Base64 长度和解码后字节长度；最终以预期 Git Blob SHA / GitHub 返回 SHA 一致作为硬门槛，失败时禁止创建素材目录或声称完成上传。
+3. 不得用 `create_file` 纯文本接口写入图片二进制，不得把本地路径或 Base64 字符串本身直接当作封面链接。
+4. 提交后逐项验证 `main HEAD`、文件路径、Blob SHA、元数据、提示词完整性及该提交关联的 Actions **最终** `success`；不能把“预备好 WebP”“创建 Blob”“更新 main”“网站部署”混为一谈。
+5. 文件库连接器的具体可用性依会话而变；在已有成功经验可参照时，**必须先实际测试桥接**，不要直接回复“当前不支持上传”。
+
 ## 四、备用方案：GitHub Issue + Actions
 
 只有直传链路确实不可用时，再使用现存的 [Issue 表单与 Actions 机制](../../../README.md)。GitHub Issue 的附件需是真实 `user-attachments` 链接；只提交本地文件名、沙盒路径或 `upload:1` 但没有附件会失败。以前 Issue #19 经 Issue #21 复用真实附件后成功；Issue #13 因未实际附加文件而失败。
