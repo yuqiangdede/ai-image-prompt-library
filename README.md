@@ -6,7 +6,7 @@
 - **添加提示词**：图库右上角填写提示词和封面，经 GitHub Issue 确认后自动写入并发布。
 - **上游关联**：Skill 可绑定原始 GitHub 仓库，展示作者、来源地址、同步 Commit。
 - **自动同步**：GitHub Actions 每天检查并同步允许再分发的上游 Skill 文本、配置与脚本；保留本地 `meta.json` 和封面设置。
-- **管理**：所有 Prompt / Skill 均可在详情页编辑标题、简介、分类、标签、主封面和效果图；一条素材可有多张可切换封面。改动由仓库所有者在 GitHub Issue 确认后自动提交。带上游来源的 Skill 仍可删除。
+- **管理**：所有 Prompt / Skill 均可在详情页编辑标题、简介、分类、标签、主封面和效果图；一条素材可有多张可切换封面。改动由仓库所有者在 GitHub Issue 确认后自动提交。Skill 和 Prompt 均可删除，带上游来源的 Skill 也不例外。
 - **来源与版权**：上游图片许可可能不同于 Skill 文本许可；默认不镜像第三方参考图片。本站示例的斑马封面直接引用上游官方图片地址。
 
 ## 在线地址
@@ -25,9 +25,9 @@ library/skills/<slug>/upstream.json  上游仓库、分支和已同步 SHA
 scripts/build_site.py            校验素材、生成索引和 ZIP
 scripts/add_prompt.py            从 GitHub Issue 添加提示词
 scripts/import_skill.py          从 GitHub Issue 导入公开 Skill
-scripts/manage_skill.py          修改图片或删除已收录 Skill
+scripts/manage_skill.py          修改信息、图片或删除已收录 Prompt / Skill
 scripts/sync_upstream.py          检查并同步上游 Skill
-.github/ISSUE_TEMPLATE/          添加提示词、导入、修改图片、删除 Skill 的 Issue 表单
+.github/ISSUE_TEMPLATE/          添加提示词、导入、修改图片、删除素材的 Issue 表单
 .github/workflows/pages.yml      自动更新、构建和部署
 ```
 
@@ -120,26 +120,26 @@ python -m http.server 8000 --directory dist
 - **替换图片 / 单次上传**：在「编辑素材」里管理已有图片的保留/移除、调整封面，并可添加 GitHub 图片链接（可预览）。**不再提供本地图片预选和拖放功能**；本地图片在跳转后的 GitHub 表单「上传新图片」中直接选择一次（PNG/JPG/WebP/GIF，单张 ≤ 8 MB、总计 ≤ 32 MB，每次新增最多 10 张，含新增链接）。
 - **新上传图片作封面**：编辑面板的「将 GitHub 表单上传的第 1 张图片设为封面」会打开必传文件表单 `.github/ISSUE_TEMPLATE/edit-item-upload.yml`，选定并上传一次后由 Actions 设为默认封面。选择现有图片或自动封面则使用一般表单 `.github/ISSUE_TEMPLATE/edit-item.yml`；自动封面优先新增链接，其次本次上传文件。
 - **确认发布**：点击「在 GitHub 确认修改 / 上传图片」预填对应 Issue 表单；仓库所有者在 GitHub 上传一次本地图片（如需要），再提交「[修改素材]」Issue，`scripts/manage_skill.py` 更新 `meta.json` 后部署 Pages。
-- **兼容性**：旧的「[修改图片]」Skill Issue 仍能处理，原有图片链接与素材 ID 保持不变。Prompt 不开放「删除 Skill」按钮。
+- **兼容性**：旧的「[修改图片]」Skill Issue 仍能处理，原有图片链接与素材 ID 保持不变。Skill 和 Prompt 都支持「删除素材」；旧「[删除 Skill]」Issue 仍兼容。
 
 ### 旧版 Skill 图片管理说明
 
-## 修改图片或删除已收录的 Skill
+## 修改图片或删除已收录的 Prompt / Skill
 
 带上游来源的 Skill 也可通过详情页右上角的「✎ 编辑素材」进入管理面板：
 
 - **修改图片**：勾选要保留的图、选择封面、填写新图地址；点「在 GitHub 确认修改」会打开已预填的 Issue 表单，还可以直接上传手机或电脑里的图片。提交后 Actions 会把上传文件保存到 `library/skills/<slug>/images/`，更新 `meta.json`，然后重新构建发布。
-- **删除 Skill**：先在图库确认，再打开删除 Issue 表单并勾选确认。Actions 会删除整个 `library/skills/<slug>/` 目录，并从其他条目的 `related_skills` 中移除引用。
+- **删除 Prompt / Skill**：任意条目进入「编辑素材 → 删除…」，二次确认后打开预填类型、slug、标题的 `delete-item.yml` Issue 表单；由仓库所有者勾选确认提交。Actions 删除对应 `library/prompts/<slug>/` 或 `library/skills/<slug>/` 整个目录（包括专属图片），清理其他素材的 `related_skills` / `related_prompts` 引用，并重建图库搜索、分类及数量。Git 历史可用于恢复误删。
 
 限制与规则：
 
-- 只有仓库所有者提交、标题为 `[修改图片]` 或 `[删除 Skill]` 的 Issue 会触发自动处理。
+- 只有仓库所有者提交、标题为 `[修改素材]`、`[修改图片]`、`[删除素材]` 或旧版 `[删除 Skill]` 的 Issue 才会触发自动管理。
 - 上传支持 PNG / JPG / WebP / GIF，单张不超过 8 MB、每次最多 10 张；上传文件会复制进公开仓库，请勿上传隐私照片或无权公开的素材。
 - 填写 GitHub 图片地址时不会镜像第三方图片，只在 `meta.json` 中保留链接；请确认图片允许公开引用。
 - 删除只影响 `library/` 和关联入口；README 中手工维护的收录说明需要按需同步更新。
 - 处理结果会回复到 Issue 并自动关闭；失败时按 Issue 提示到 Actions 查看日志。
 
-核心实现：`scripts/manage_skill.py`、`.github/ISSUE_TEMPLATE/edit-skill.yml`、`.github/ISSUE_TEMPLATE/delete-skill.yml`、`site/app.js` 的管理面板。
+核心实现：`scripts/manage_skill.py`、`.github/ISSUE_TEMPLATE/edit-skill.yml`、`.github/ISSUE_TEMPLATE/delete-item.yml`（兼容旧 `delete-skill.yml`）、`site/app.js` 的管理面板。
 
 ## 手工添加 Skill（不用命令行）
 

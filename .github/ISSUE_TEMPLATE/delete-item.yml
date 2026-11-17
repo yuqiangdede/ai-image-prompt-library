@@ -1,0 +1,40 @@
+name: 删除已收录的 Prompt / Skill
+description: 从图库删除指定素材及其专属图片，仅仓库所有者提交的确认请求会自动执行。
+title: "[删除素材] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        请仔细核对素材类型、slug 和标题。
+        删除会移除整个对应素材目录（包含全部封面、效果图及内容），同时清理其他素材中的引用并重建图库。
+        若只需替换图片，请使用「编辑素材」；误删可通过 Git 历史恢复。
+  - type: input
+    id: item_kind
+    attributes:
+      label: 素材类型
+      description: 从图库预填 skill 或 prompt，请勿修改。
+      placeholder: prompt
+    validations:
+      required: true
+  - type: input
+    id: item_slug
+    attributes:
+      label: 素材标识（slug）
+      description: 必须填写该素材的目录名，不是显示标题。
+      placeholder: example-prompt
+    validations:
+      required: true
+  - type: input
+    id: item_title
+    attributes:
+      label: 素材标题（用于核对）
+      description: 必须与当前图库素材标题完全相同。
+    validations:
+      required: true
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: 删除确认
+      options:
+        - label: 我确认删除此素材及其专属图片，并清理关联入口
+          required: true

@@ -444,7 +444,10 @@
     $("manage-item-description").value = item.description || "";
     $("manage-item-category").value = item.category || "";
     $("manage-item-tags").value = (item.tags || []).join(", ");
-    $("manage-danger-section").hidden = item.kind !== "skill";
+    $("manage-danger-section").hidden = false;
+    $("manage-danger-heading").textContent = item.kind === "skill" ? "删除此 Skill" : "删除此提示词";
+    $("manage-danger-description").textContent =
+      "将移除该素材的全部内容、专属图片和封面，并清理其他素材中的关联引用。可通过 Git 历史恢复。";
     $("manage-new-image").value = "";
     $("manage-add-error").hidden = true;
     $("manage-status").hidden = true;
@@ -544,7 +547,7 @@
   function askDelete() {
     const manage = state.manage;
     if (!manage) return;
-    $("manage-confirm-title").textContent = manage.item.title;
+    $("manage-confirm-title").textContent = (manage.item.kind === "skill" ? "Skill：" : "提示词：") + manage.item.title;
     $("manage-confirm").hidden = false;
     $("manage-delete").hidden = true;
     $("manage-confirm").scrollIntoView({ block: "nearest" });
@@ -559,9 +562,10 @@
     const manage = state.manage;
     if (!manage) return;
     const params = new URLSearchParams();
-    params.set("template", "delete-skill.yml");
-    params.set("skill_slug", manage.item.slug);
-    params.set("skill_title", manage.item.title);
+    params.set("template", "delete-item.yml");
+    params.set("item_kind", manage.item.kind);
+    params.set("item_slug", manage.item.slug);
+    params.set("item_title", manage.item.title);
     const url = state.catalog.repository_url + "/issues/new?" + params.toString();
     showManageStatus("已尝试打开删除确认页。请在 GitHub 勾选确认并提交，Actions 执行后才会真正删除。", url);
     window.open(url, "_blank", "noopener,noreferrer");

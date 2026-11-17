@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Apply gallery metadata/image changes or delete a Skill from an owner's GitHub Issue."""
+"""Apply gallery metadata/image changes or delete a Prompt / Skill from an owner's GitHub Issue."""
 import hashlib
 import json
 import os
@@ -19,7 +19,8 @@ USER_AGENT = "ai-image-prompt-library"
 
 EDIT_TITLE = "[修改素材]"
 LEGACY_EDIT_TITLE = "[修改图片]"
-DELETE_TITLE = "[删除 Skill]"
+DELETE_TITLE = "[删除 Skill]"  # Legacy form
+DELETE_ITEM_TITLE = "[删除素材]"
 
 IMAGE_EXTENSIONS = (".jpg", ".jpeg", ".png", ".webp", ".gif", ".svg", ".avif")
 MAX_IMAGE_BYTES = 8_000_000
@@ -366,28 +367,39 @@ def edit_images(sections, slug, kind="skill"):
     print("Updated {}: {} images, cover={}".format(slug, len(final), cover or "(none)"))
 
 
-def delete_skill(sections, slug):
+def delete_item(sections, slug, kind="skill"):
+    """Remove exactly one item, its own images and its inbound references."""
     if not re.search(r"^\s*-\s*\[[xX]\]", section_value(sections, LABELS["confirm"]), re.M):
         raise PermissionError("删除操作需要先勾选确认")
-    folder = skill_folder(slug)
-    shutil.rmtree(folder)
-    unlinked = 0
+    folder = item_folder(slug, kind)
+    expected_title = (
+        section_value(sections, "素材标题（用于核对）")
+        or section_value(sections, "Skill 标题（用于人工核对）")
+    )
+    if expected_title and expected_title != load_meta(folder).get("title"):
+        raise ValueError("素材标题不匹配，请刷新图库并核对后重试，避免删错条目")
+    relation_key = "related_skills" if kind == "skill" else "related_prompts"
+    updates = []
     for base in (PROMPTS, SKILLS):
         if not base.exists():
             continue
         for meta_path in base.glob("*/meta.json"):
-            if not meta_path.parent.is_dir():
+            if meta_path.parent == folder or not meta_path.parent.is_dir():
                 continue
-            try:
-                meta = json.loads(meta_path.read_text(encoding="utf-8"))
-            except (OSError, ValueError):
-                continue
-            related = meta.get("related_skills")
+            meta = load_meta(meta_path.parent)
+            related = meta.get(relation_key)
             if isinstance(related, list) and slug in related:
-                meta["related_skills"] = [item for item in related if item != slug]
-                write_meta(meta_path.parent, meta)
-                unlinked += 1
-    print("Deleted {} (unlinked from {} item(s))".format(slug, unlinked))
+                meta[relation_key] = [ref for ref in related if ref != slug]
+                updates.append((meta_path.parent, meta))
+    shutil.rmtree(folder)
+    for other_folder, meta in updates:
+        write_meta(other_folder, meta)
+    print("Deleted {}:{} (unlinked from {} item(s))".format(kind, slug, len(updates)))
+
+
+def delete_skill(sections, slug):
+    """Compatibility with the old Skill-only deletion form."""
+    return delete_item(sections, slug, "skill")
 
 
 def issue_request():
@@ -403,7 +415,7 @@ def issue_request():
     slug_text = section_value(sections, LABELS["slug"]) or section_value(sections, "Skill 标识")
     slug = slug_text.splitlines()[0].strip().strip("`").strip() if slug_text else ""
     if not slug:
-        for prefix in (EDIT_TITLE, LEGACY_EDIT_TITLE, DELETE_TITLE):
+        for prefix in (EDIT_TITLE, LEGACY_EDIT_TITLE, DELETE_ITEM_TITLE, DELETE_TITLE):
             if title.startswith(prefix):
                 slug = title[len(prefix):].strip()
                 break
@@ -417,7 +429,11 @@ def main():
     title, sections, slug, kind = issue_request()
     if title.startswith(EDIT_TITLE) or title.startswith(LEGACY_EDIT_TITLE):
         edit_images(sections, slug, kind)
+    elif title.startswith(DELETE_ITEM_TITLE):
+        delete_item(sections, slug, kind)
     elif title.startswith(DELETE_TITLE):
+        if kind != "skill":
+            raise ValueError("旧版删除 Skill 请求不支持删除提示词")
         delete_skill(sections, slug)
     else:
         raise ValueError("未知的管理请求：" + title)

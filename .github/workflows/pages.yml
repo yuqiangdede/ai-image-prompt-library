@@ -37,7 +37,8 @@ jobs:
          startsWith(github.event.issue.title, '[添加提示词]') ||
          startsWith(github.event.issue.title, '[修改素材]') ||
          startsWith(github.event.issue.title, '[修改图片]') ||
-         startsWith(github.event.issue.title, '[删除 Skill]'))) ||
+         startsWith(github.event.issue.title, '[删除 Skill]') ||
+         startsWith(github.event.issue.title, '[删除素材]'))) ||
       (github.event_name == 'issue_comment' &&
         github.event.issue.state == 'open' &&
         github.event.issue.user.login == github.repository_owner &&
@@ -114,7 +115,7 @@ jobs:
           fi
       - name: Apply gallery metadata, image changes or deletion from owner issue
         id: manage_skill
-        if: github.event_name == 'issues' && (startsWith(github.event.issue.title, '[修改素材]') || startsWith(github.event.issue.title, '[修改图片]') || startsWith(github.event.issue.title, '[删除 Skill]'))
+        if: github.event_name == 'issues' && (startsWith(github.event.issue.title, '[修改素材]') || startsWith(github.event.issue.title, '[修改图片]') || startsWith(github.event.issue.title, '[删除 Skill]') || startsWith(github.event.issue.title, '[删除素材]'))
         run: |
           {
             python scripts/manage_skill.py
@@ -162,9 +163,10 @@ jobs:
             "[修改素材]"*) HINT="请检查素材类型、slug、标题、简介、标签、图片及上传文件（PNG/JPG/WebP/GIF，单张不超过 8 MB），详细原因见 Actions 日志。";;
             "[修改图片]"*) HINT="请检查 Skill 标识、图片地址和上传文件（PNG/JPG/WebP/GIF，单张不超过 8 MB），详细原因见 Actions 日志。";;
             "[删除 Skill]"*) HINT="请检查 Skill 标识是否正确，并确认已勾选删除确认。";;
+            "[删除素材]"*) HINT="请检查素材类型、slug、标题和删除确认是否正确。";;
             *) HINT="详细原因见 Actions 日志。";;
           esac
-          if [[ "$ISSUE_TITLE" == "[修改素材]"* || "$ISSUE_TITLE" == "[修改图片]"* ]]; then
+          if [[ "$ISSUE_TITLE" == "[修改素材]"* || "$ISSUE_TITLE" == "[修改图片]"* || "$ISSUE_TITLE" == "[删除素材]"* ]]; then
             DETAIL=$(grep -E '^(ERROR:|fatal:|error:|remote: error:|! \[rejected\])' "$RUNNER_TEMP/manage-skill.log" 2>/dev/null | tail -n 1 || true)
             if [ -z "$DETAIL" ]; then
               DETAIL=$(tail -n 3 "$RUNNER_TEMP/manage-skill.log" 2>/dev/null | tr '\n' ' ' | cut -c 1-700 || true)
@@ -193,6 +195,7 @@ jobs:
             "[修改素材]"*) MESSAGE="素材信息与图片已更新，部署完成后刷新图库即可看到。";;
             "[修改图片]"*) MESSAGE="图片已更新，部署完成后刷新图库即可看到。";;
             "[删除 Skill]"*) MESSAGE="Skill 已从图库删除。";;
+            "[删除素材]"*) MESSAGE="指定素材及其专属图片已从图库删除。";;
             *) MESSAGE="请求已处理。";;
           esac
           gh issue comment "$ISSUE_NUMBER" --body "$MESSAGE 图库：https://yuqiangdede.github.io/ai-image-prompt-library/"

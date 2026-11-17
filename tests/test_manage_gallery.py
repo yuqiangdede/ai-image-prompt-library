@@ -206,6 +206,59 @@ class ManageGalleryItemTests(unittest.TestCase):
             manager.item_folder("sample", "skill")
 
 
+    def test_delete_prompt_removes_only_target_and_images(self):
+        target = self.make_item("prompt", "sample")
+        same_slug_skill = self.make_item("skill", "sample")
+        other = self.make_item("skill", "other")
+        meta = self.read_meta(other)
+        meta["related_prompts"] = ["sample", "keep"]
+        manager.write_meta(other, meta)
+        manager.delete_item({"确认": "- [x] 删除", "素材标题（用于核对）": "Old title"}, "sample", "prompt")
+        self.assertFalse(target.exists())
+        self.assertTrue(same_slug_skill.exists())
+        self.assertEqual(self.read_meta(other)["related_prompts"], ["keep"])
+
+    def test_delete_skill_clears_both_kinds_of_inbound_references(self):
+        target = self.make_item("skill", "sample")
+        prompt = self.make_item("prompt", "other")
+        skill = self.make_item("skill", "other")
+        for folder in (prompt, skill):
+            meta = self.read_meta(folder)
+            meta["related_skills"] = ["sample", "keep"]
+            manager.write_meta(folder, meta)
+        manager.delete_skill({"确认": "- [x] 确认"}, "sample")
+        self.assertFalse(target.exists())
+        for folder in (prompt, skill):
+            self.assertEqual(self.read_meta(folder)["related_skills"], ["keep"])
+
+    def test_delete_requires_confirmation_and_matching_title(self):
+        target = self.make_item("prompt")
+        with self.assertRaisesRegex(PermissionError, "勾选确认"):
+            manager.delete_item({"确认": "- [ ] 尚未确认"}, "sample", "prompt")
+        with self.assertRaisesRegex(ValueError, "标题不匹配"):
+            manager.delete_item({"确认": "- [x] 删除", "素材标题（用于核对）": "错的标题"}, "sample", "prompt")
+        self.assertTrue(target.exists())
+
+    def test_prompt_deletion_owner_authorization_and_issue_dispatch(self):
+        target = self.make_item("prompt")
+        event = {"issue": {
+            "user": {"login": "visitor"},
+            "title": "[删除素材] sample",
+            "body": "### 素材类型\n\nprompt\n\n### 素材标识（slug）\n\nsample\n\n"
+                    "### 素材标题（用于核对）\n\nOld title\n\n### 删除确认\n\n- [x] 删除",
+        }}
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "event.json"
+            with patch.dict(os.environ, {"GITHUB_EVENT_PATH": str(path)}):
+                path.write_text(json.dumps(event, ensure_ascii=False), encoding="utf-8")
+                with self.assertRaisesRegex(PermissionError, "仓库所有者"):
+                    manager.main()
+                self.assertTrue(target.exists())
+                event["issue"]["user"]["login"] = "yuqiangdede"
+                path.write_text(json.dumps(event, ensure_ascii=False), encoding="utf-8")
+                manager.main()
+        self.assertFalse(target.exists())
+
 class StagedPromptCoverTests(unittest.TestCase):
     def make_webp_zip(self, filenames=("cover.webp",)):
         webp = b"RIFF" + (12).to_bytes(4, "little") + b"WEBP" + b"fake-webp-data"
