@@ -1,0 +1,20 @@
+{
+  "title": "Hand Drawn 3.1｜蜡笔童涂－潦草自画版",
+  "description": "普通家长歪线稿和孩子潦草蜡笔涂色，明亮白底；正式生产需固定参考图及验收。",
+  "category": "插画 / 手绘",
+  "tags": [
+    "手绘插画",
+    "亲子绘画",
+    "儿童蜡笔",
+    "家庭投稿",
+    "画风锚点"
+  ],
+  "model": "ChatGPT",
+  "updated_at": "2026-11-18",
+  "cover": "https://hand-drawn-images.pages.dev/hand-drawn/assets/style-3.1/anchor-family.png",
+  "images": [
+    "https://hand-drawn-images.pages.dev/hand-drawn/assets/style-3.1/anchor-family.png"
+  ],
+  "related_skills": [],
+  "external_only": false
+}

@@ -1,0 +1,20 @@
+{
+  "title": "Hand Drawn 8｜水墨写意",
+  "description": "传统写意水墨，浓淡干湿、飞白、宣纸渗化和留白。",
+  "category": "插画 / 手绘",
+  "tags": [
+    "手绘插画",
+    "传统水墨",
+    "国画",
+    "宣纸",
+    "写意"
+  ],
+  "model": "ChatGPT",
+  "updated_at": "2026-11-18",
+  "cover": "https://hand-drawn-images.pages.dev/hand-drawn/examples/08-ink-wash.png",
+  "images": [
+    "https://hand-drawn-images.pages.dev/hand-drawn/examples/08-ink-wash.png"
+  ],
+  "related_skills": [],
+  "external_only": false
+}

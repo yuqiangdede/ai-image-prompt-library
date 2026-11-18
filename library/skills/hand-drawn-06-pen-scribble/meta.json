@@ -1,0 +1,20 @@
+{
+  "title": "Hand Drawn 6｜圆珠笔单线涂鸦",
+  "description": "单色圆珠笔以缠绕线密度表现形体，适合肖像和动物速写。",
+  "category": "插画 / 手绘",
+  "tags": [
+    "手绘插画",
+    "圆珠笔",
+    "速写",
+    "单线涂鸦",
+    "黑白肖像"
+  ],
+  "model": "ChatGPT",
+  "updated_at": "2026-11-18",
+  "cover": "https://hand-drawn-images.pages.dev/hand-drawn/examples/06-pen-scribble.png",
+  "images": [
+    "https://hand-drawn-images.pages.dev/hand-drawn/examples/06-pen-scribble.png"
+  ],
+  "related_skills": [],
+  "external_only": false
+}

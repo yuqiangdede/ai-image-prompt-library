@@ -1,0 +1,20 @@
+{
+  "title": "Hand Drawn 7｜蜡笔实拍",
+  "description": "手机拍摄儿童真实蜡笔纸页，保留纸面、漏白及蜡质笔触。",
+  "category": "插画 / 手绘",
+  "tags": [
+    "手绘插画",
+    "儿童蜡笔",
+    "纸张实拍",
+    "自然纹理",
+    "手绘"
+  ],
+  "model": "ChatGPT",
+  "updated_at": "2026-11-18",
+  "cover": "https://hand-drawn-images.pages.dev/hand-drawn/examples/07-real-crayon.png",
+  "images": [
+    "https://hand-drawn-images.pages.dev/hand-drawn/examples/07-real-crayon.png"
+  ],
+  "related_skills": [],
+  "external_only": false
+}

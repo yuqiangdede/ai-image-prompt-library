@@ -1,0 +1,20 @@
+{
+  "title": "Hand Drawn 2｜蜡笔童涂",
+  "description": "模拟五岁儿童蜡笔涂画，歪线、出框、笨拙比例和粗糙填色。",
+  "category": "插画 / 手绘",
+  "tags": [
+    "手绘插画",
+    "儿童画",
+    "蜡笔",
+    "童趣",
+    "幼儿涂鸦"
+  ],
+  "model": "ChatGPT",
+  "updated_at": "2026-11-18",
+  "cover": "https://hand-drawn-images.pages.dev/hand-drawn/examples/02-crayon.png",
+  "images": [
+    "https://hand-drawn-images.pages.dev/hand-drawn/examples/02-crayon.png"
+  ],
+  "related_skills": [],
+  "external_only": false
+}

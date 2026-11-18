@@ -1,0 +1,20 @@
+{
+  "title": "Hand Drawn 23｜皮影彩染",
+  "description": "传统中国皮影的平面铆接、镂刻、透光彩染与暖幕光。",
+  "category": "插画 / 手绘",
+  "tags": [
+    "手绘插画",
+    "中国皮影",
+    "镂刻",
+    "透光彩染",
+    "传统工艺"
+  ],
+  "model": "ChatGPT",
+  "updated_at": "2026-11-18",
+  "cover": "https://hand-drawn-images.pages.dev/hand-drawn/examples/23-shadow-puppet.png",
+  "images": [
+    "https://hand-drawn-images.pages.dev/hand-drawn/examples/23-shadow-puppet.png"
+  ],
+  "related_skills": [],
+  "external_only": false
+}
