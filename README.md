@@ -82,6 +82,10 @@ python -m http.server 8000 --directory dist
 
 ## ChatGPT 生成图片后直传 GitHub（首选）
 
+**完整版操作手册（2026-11-19）**：[`docs/howto/chatgpt-image-direct-upload.md`](docs/howto/chatgpt-image-direct-upload.md)，包含高清 WebP 准备、Base64 文件桥接、Git Blob/Tree/Commit/main 提交、SHA 验证、Actions push 发布验收和故障排查。以后用户说“加入项目”，优先按此手册执行。
+
+**辅助脚本**：[`scripts/prepare_chatgpt_cover.py`](scripts/prepare_chatgpt_cover.py)，本地生成原分辨率 WebP、Base64 中转文本和 Blob SHA 清单（图片转换需 Pillow）；它只负责准备文件，不会自动上传到 GitHub。
+
 **已验证成功（2026-11-18）：** 本项目支持 ChatGPT 生成图片经过高清 WebP 转换后，经受控的 Base64 文件中转与 GitHub Git Data API（`create_blob` → `create_tree` → `create_commit` → `update_ref`）直接写入 `main`，随后核对图片 Blob SHA 和 GitHub Actions 部署成功。不必再让用户手动上传 ZIP 到 GitHub Issue。
 
 后续执行图片上传/替换时，请优先参照 **[高清图片直传成功经验与验收清单](docs/pocket/pitfalls/2026-11-18-chatgpt-image-direct-upload.md)**；仅在当前连接确实不能传输图片时才采用下述 Issue 备用流程。
