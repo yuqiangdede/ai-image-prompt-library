@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12140e">
+<title>灵感素材库 · ATELIER｜Prompt &amp; Skill Gallery</title>
+<link rel="stylesheet" href="./tokens.css">
+<style>
+:root{
+  --color-bg:#12140e;
+  --color-surface:#191c12;
+  --color-text:#efe9d9;
+  --color-muted:#9d9e8e;
+  --color-line:#2e3224;
+  --color-primary:#cbd741;
+  --color-on-primary:#12140e;
+  --b-serif:"Songti SC","Noto Serif SC",Georgia,"Times New Roman",serif;
+  --b-sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  --b-mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --rail:296px;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--color-bg);color:var(--color-text);font-family:var(--b-sans);-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:inherit;text-decoration:none}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--color-primary);outline-offset:3px}
+
+/* ---- 左侧固定档案栏 ---- */
+.rail{position:fixed;inset:0 auto 0 0;width:var(--rail);padding:28px 26px 26px;display:flex;flex-direction:column;gap:16px;background:#0e100a;border-right:1px solid var(--color-line);overflow:auto;-ms-overflow-style:none;scrollbar-width:none}
+.mark{display:flex;align-items:center;gap:12px}
+.mark b{width:46px;height:46px;flex:none;border-radius:50%;background:var(--color-primary);color:var(--color-on-primary);display:grid;place-items:center;font:900 15px/1 var(--b-sans);letter-spacing:-1px}
+.mark span{font:500 12px/1.6 var(--b-mono);letter-spacing:2.2px;color:var(--color-muted)}
+.rail-kicker{margin:6px 0 -12px;font:500 12px/1 var(--b-mono);letter-spacing:2.2px;color:var(--color-muted)}
+.rail-title{margin:0;font:700 33px/1.1 var(--b-serif);letter-spacing:-.5px}
+.rail-title em{font-style:normal;color:var(--color-primary)}
+.search{display:flex;align-items:center;gap:9px;border-bottom:1px solid var(--color-line);padding:12px 0 14px}
+.search i{font-style:normal;color:var(--color-muted);font-size:15px;transform:rotate(-18deg)}
+.search input{width:100%;min-height:28px;padding:2px 0;background:none;border:0;outline:0;font:500 13px/1.4 var(--b-sans);color:var(--color-text)}
+.search input::placeholder{color:#6c6e5f}
+.rail-group{display:grid;gap:9px}
+.rail-label{font:500 12px/1 var(--b-mono);letter-spacing:1.8px;color:var(--color-muted)}
+.rail select{width:100%;height:38px;background:#15180f;border:1px solid var(--color-line);border-radius:0;padding:0 10px;font:500 12px/1 var(--b-sans);color:var(--color-text)}
+.rail-nav{display:grid;gap:2px;border-top:1px solid var(--color-line);padding-top:16px}
+.rail-nav button,.rail-cats button{display:flex;align-items:baseline;justify-content:space-between;gap:10px;width:100%;padding:7px 0;border:0;background:none;text-align:left;font:500 12px/1.4 var(--b-sans);color:#cfc9b8;border-bottom:1px solid #21251a}
+.rail-nav button span,.rail-cats button span{font:500 12px/1 var(--b-mono);color:var(--color-muted)}
+.rail-nav button[aria-pressed="true"],.rail-cats button[aria-pressed="true"]{color:var(--color-primary)}
+.rail-cats{display:grid;gap:2px}
+.rail-foot{margin-top:auto;flex:none;display:grid;gap:6px;padding:14px 0 0;border-top:1px solid var(--color-line)}
+.tally{display:block;font:500 13px/1.4 var(--b-mono);letter-spacing:1.4px;color:var(--color-muted)}
+.tally b{font:700 22px/1.2 var(--b-serif);color:var(--color-primary);margin-right:6px;vertical-align:middle}
+.rail-foot a{display:inline-block;font:500 12px/1.4 var(--b-mono);letter-spacing:.6px;color:#cfc9b8;border-bottom:1px solid var(--color-line);padding:9px 0}
+.rail-foot a:hover{color:var(--color-primary)}
+
+/* ---- 右侧展陈区 ---- */
+.stage{margin-left:var(--rail);padding:0 44px 70px;min-height:100vh}
+.stage-head{display:flex;align-items:baseline;justify-content:space-between;gap:18px;padding:32px 0 16px;border-bottom:1px solid var(--color-line)}
+.stage-head p{margin:0;font:500 12px/1 var(--b-mono);letter-spacing:2px;color:var(--color-muted)}
+.stage-head b{color:var(--color-text)}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:40px 26px;padding-top:30px}
+.card{min-width:0}
+.card:first-child{grid-column:span 2}
+.shot{position:relative;display:block;width:100%;padding:0;border:0;background:#20241a;overflow:hidden;scrollbar-width:none}
+.shot img{display:block;width:100%;aspect-ratio:4/5;object-fit:cover;transition:transform .7s cubic-bezier(.2,.8,.2,1),filter .4s;filter:sat(.92)}
+.card:first-child .shot img{aspect-ratio:16/10}
+.shot:hover img{transform:scale(1.035);filter:sat(1.02)}
+.idx{position:absolute;left:0;top:0;padding:7px 9px;background:rgba(9,11,6,.55);color:#f3efe2;font:500 13px/1 var(--b-mono);letter-spacing:1.2px}
+.meta{padding-top:13px;min-height:5.1em;border-top:1px solid transparent;transition:border-color .3s}
+.card:hover .meta{border-top-color:var(--color-line)}
+.meta h2{margin:0;font:600 16px/1.4 var(--b-serif);letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meta p{margin:8px 0 0;font:500 13px/1.6 var(--b-mono);letter-spacing:1.5px;color:var(--color-muted);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.empty{grid-column:1/-1;padding:80px 0;text-align:center;font:500 12px/1.8 var(--b-mono);color:var(--color-muted)}
+
+/* ---- 大图浮层 ---- */
+.vault{position:fixed;inset:0;z-index:60;background:rgba(8,10,5,.94);display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:0}
+.vault figure{margin:0;padding:38px;display:grid;place-items:center;min-height:0}
+.vault img{max-width:100%;max-height:calc(100vh - 76px);object-fit:contain;display:block}
+.vault aside{padding:38px 30px;border-left:1px solid #2a2e20;display:flex;flex-direction:column;gap:14px;overflow:auto}
+.vault .close{align-self:flex-start;width:38px;height:38px;border:1px solid #3a3f2c;background:none;color:var(--color-text);border-radius:50%;font-size:15px}
+.vault h2{margin:0;font:700 24px/1.3 var(--b-serif)}
+.vault .desc{margin:0;color:#b9b6a6;font-size:13px;line-height:1.85}
+.vault .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+.vault .tags span{font:500 12px/1 var(--b-mono);letter-spacing:1.2px;padding:6px 8px;border:1px solid #343828;color:#c5c1b1}
+.vault .go{margin-top:auto;padding-top:18px;border-top:1px solid #2a2e20;font:500 12px/1.4 var(--b-mono);letter-spacing:.6px;color:var(--color-primary)}
+.vault .go a{display:inline-block;padding:8px 0}
+
+@media(max-width:1180px){
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .stage{padding:0 28px 60px}
+}
+@media(max-width:860px){
+  .rail{position:static;width:auto;border-right:0;border-bottom:1px solid var(--color-line);overflow:visible}
+  .rail-title{font-size:28px}
+  .rail-cats{max-height:none;display:flex;flex-wrap:wrap;gap:0 16px}
+  .rail-cats{display:flex;flex-wrap:wrap;gap:0 16px}
+  .rail-cats button{width:auto;border:0;gap:6px}
+  .stage{margin-left:0;padding:0 18px 48px}
+  .card:first-child{grid-column:span 2}
+}
+@media(max-width:640px){
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:26px 12px}
+  .card:first-child{grid-column:span 2}
+  .card:first-child .shot img{aspect-ratio:4/5}
+  .vault{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto}
+  .vault figure{padding:16px}
+  .vault img{max-height:56vh}
+  .vault aside{border-left:0;border-top:1px solid #2a2e20;padding:20px}
+}
+</style>
+</head>
+<body>
+<aside class="rail">
+  <div class="mark"><b>P✳S</b><span>PROMPT<br>LIBRARY</span></div>
+  <p class="rail-kicker">ATELIER / COLLECTION 01</p>
+  <h1 class="rail-title">灵感<br><em>素材库</em></h1>
+  <label class="search"><i aria-hidden="true">⌕</i><input id="q" type="search" placeholder="搜索风格、Skill、标签…" autocomplete="off" aria-label="搜索素材"></label>
+  <div class="rail-group">
+    <span class="rail-label">SORT / 排序</span>
+    <select id="sort" aria-label="排序方式">
+      <option value="new">最近更新</option>
+      <option value="old">最早更新</option>
+      <option value="az">名称 A—Z</option>
+      <option value="za">名称 Z—A</option>
+    </select>
+  </div>
+  <nav class="rail-nav" id="kind-nav" aria-label="素材类型"></nav>
+  <div class="rail-group">
+    <span class="rail-label">SERIES / 分类</span>
+    <nav class="rail-cats" id="cat-nav" aria-label="分类"></nav>
+  </div>
+  <div class="rail-foot">
+    <span class="tally"><b id="count">—</b>个素材</span>
+    <a href="./index.html">打开完整图库 ↗</a>
+  </div>
+</aside>
+<main class="stage">
+  <div class="stage-head">
+    <p><b id="result-line">—</b> RESULTS</p>
+    <p>点开图片 · 看大图与创作方法</p>
+  </div>
+  <section class="grid" id="grid" aria-live="polite"></section>
+</main>
+<div class="vault" id="vault" hidden>
+  <figure><img id="vault-img" alt=""></figure>
+  <aside>
+    <button class="close" id="vault-close" type="button" aria-label="关闭">✕</button>
+    <h2 id="vault-title"></h2>
+    <p class="desc" id="vault-desc"></p>
+    <div class="tags" id="vault-tags"></div>
+    <a class="go" id="vault-go" href="./index.html">在完整图库中打开 ↗</a>
+  </aside>
+</div>
+<script>
+(function(){
+  "use strict";
+  var state = { items: [], q: "", kind: "all", cat: "all", sort: "new" };
+  var byId = function(id){ return document.getElementById(id); };
+  var enc = function(p){ p = String(p || ""); return /^https?:\/\//.test(p) ? p : "./" + p.split("/").map(encodeURIComponent).join("/"); };
+  var catOf = function(item){ return String(item.category || "").split(" / ")[0].trim() || "其他"; };
+  var kindName = function(item){ return item.kind === "skill" ? "SKILL" : "PROMPT"; };
+
+  function visible(){
+    var q = state.q.trim().toLowerCase();
+    var list = state.items.filter(function(item){
+      if (state.kind !== "all" && item.kind !== state.kind) return false;
+      if (state.cat !== "all" && catOf(item) !== state.cat) return false;
+      if (!q) return true;
+      var hay = [item.title, item.description, item.category, (item.tags || []).join(" ")].join(" ").toLowerCase();
+      return hay.indexOf(q) > -1;
+    });
+    var byTitle = function(a, b){ return a.title.localeCompare(b.title, "zh-CN"); };
+    if (state.sort === "az") list.sort(byTitle);
+    else if (state.sort === "za") list.sort(function(a, b){ return byTitle(b, a); });
+    else if (state.sort === "old") list.sort(function(a, b){ return String(a.updated_at).localeCompare(String(b.updated_at)) || byTitle(a, b); });
+    else list.sort(function(a, b){ return String(b.updated_at).localeCompare(String(a.updated_at)) || byTitle(a, b); });
+    return list;
+  }
+
+  function renderFilters(){
+    var kinds = [
+      ["all", "全部素材"], ["prompt", "Prompts"], ["skill", "Skills"]
+    ];
+    byId("kind-nav").innerHTML = kinds.map(function(pair){
+      var n = pair[0] === "all" ? state.items.length : state.items.filter(function(i){ return i.kind === pair[0]; }).length;
+      return '<button type="button" data-kind="' + pair[0] + '" aria-pressed="' + (state.kind === pair[0]) + '">' + pair[1] + '<span>' + n + '</span></button>';
+    }).join("");
+    var counts = {};
+    state.items.forEach(function(item){ var c = catOf(item); counts[c] = (counts[c] || 0) + 1; });
+    var cats = Object.keys(counts).sort(function(a, b){ return counts[b] - counts[a]; });
+    byId("cat-nav").innerHTML = ['<button type="button" data-cat="all" aria-pressed="' + (state.cat === "all") + '">全部<span>' + state.items.length + '</span></button>']
+      .concat(cats.map(function(c){
+        return '<button type="button" data-cat="' + c + '" aria-pressed="' + (state.cat === c) + '">' + c + '<span>' + counts[c] + '</span></button>';
+      })).join("");
+  }
+
+  function render(){
+    var list = visible();
+    byId("count").textContent = state.items.length;
+    byId("result-line").textContent = String(list.length).padStart(2, "0");
+    if (!list.length){
+      byId("grid").innerHTML = '<p class="empty">没有匹配的素材 —— 换个关键词或分类试试。</p>';
+      return;
+    }
+    byId("grid").innerHTML = list.map(function(item, i){
+      var cover = (item.images && item.images[0]) || item.cover || "";
+      var tags = (item.tags || []).slice(0, 2).join(" · ");
+      return '<article class="card">' +
+        '<button class="shot" type="button" data-open="' + item.id + '" aria-label="查看 ' + item.title + '">' +
+          '<img loading="lazy" src="' + enc(cover) + '" alt="' + item.title + ' 效果图">' +
+          '<span class="idx">' + String(i + 1).padStart(2, "0") + '</span>' +
+        '</button>' +
+        '<div class="meta"><h2>' + item.title + '</h2><p>' + kindName(item) + (tags ? " — " + tags : "") + '</p></div>' +
+      '</article>';
+    }).join("");
+  }
+
+  function openVault(id){
+    var item = state.items.filter(function(i){ return i.id === id; })[0];
+    if (!item) return;
+    var src = (item.images && item.images[0]) || item.cover || "";
+    byId("vault-img").src = enc(src);
+    byId("vault-img").alt = item.title + " 效果图";
+    byId("vault-title").textContent = item.title;
+    byId("vault-desc").textContent = item.description || "";
+    byId("vault-tags").innerHTML = (item.tags || []).map(function(t){ return '<span>' + t + '</span>'; }).join("");
+    byId("vault-go").href = "./index.html?item=" + encodeURIComponent(item.id);
+    byId("vault").hidden = false;
+    document.body.style.overflow = "hidden";
+  }
+  function closeVault(){
+    byId("vault").hidden = true;
+    document.body.style.overflow = "";
+  }
+
+  document.addEventListener("click", function(event){
+    var kindBtn = event.target.closest("[data-kind]");
+    if (kindBtn){ state.kind = kindBtn.dataset.kind; renderFilters(); render(); return; }
+    var catBtn = event.target.closest("[data-cat]");
+    if (catBtn){ state.cat = catBtn.dataset.cat; renderFilters(); render(); return; }
+    var openBtn = event.target.closest("[data-open]");
+    if (openBtn){ openVault(openBtn.dataset.open); return; }
+    if (event.target.id === "vault-close" || event.target === byId("vault")) closeVault();
+  });
+  byId("q").addEventListener("input", function(event){ state.q = event.target.value; render(); });
+  byId("sort").addEventListener("change", function(event){ state.sort = event.target.value; render(); });
+  document.addEventListener("keydown", function(event){
+    if (event.key === "Escape") closeVault();
+    if (event.key === "/" && document.activeElement !== byId("q")){ event.preventDefault(); byId("q").focus(); }
+  });
+
+  fetch("./data/catalog.json", { cache: "no-store" })
+    .then(function(response){ if (!response.ok) throw new Error("HTTP " + response.status); return response.json(); })
+    .then(function(data){ state.items = data.items || []; renderFilters(); render(); })
+    .catch(function(error){ byId("grid").innerHTML = '<p class="empty">加载失败：' + error.message + '</p>'; });
+})();
+</script>
+</html>

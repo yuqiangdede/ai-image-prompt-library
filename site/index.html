@@ -13,20 +13,17 @@
 <body>
   <header class="topbar">
     <div class="topbar-inner">
-      <a class="brand" href="./" aria-label="回到图库"><span class="brand-symbol">P<span>✳</span>S</span><span class="brand-text">PROMPT<br><small>LIBRARY</small></span></a>
+      <div class="brand-block"><a class="brand" href="./" aria-label="回到图库"><span class="brand-symbol">P<span>✳</span>S</span><span class="brand-text">PROMPT<br><small>LIBRARY</small></span></a><h2 class="page-title">灵感素材库</h2></div>
+      <div class="tools">
+        <label class="search"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="搜索风格、Skill、标签、提示词…" autocomplete="off" aria-label="搜索素材"><kbd>/</kbd></label>
+        <label class="sort-field"><span class="sort-label" aria-hidden="true">排序</span><select id="sort" aria-label="排序方式"><option value="new">最近更新</option><option value="old">最早更新</option><option value="az">名称 A—Z</option><option value="za">名称 Z—A</option><option value="fav">收藏优先</option></select></label>
+      </div>
+      <div class="workspace-count" aria-label="图库素材数量"><strong id="hero-count">—</strong><span>个素材</span></div>
       <div class="top-right"><span class="status"><span class="status-dot"></span> GitHub 自动同步</span><a id="repository-link" class="repo-link" href="https://github.com/yuqiangdede/ai-image-prompt-library" target="_blank" rel="noopener noreferrer">GitHub ↗</a><div class="top-actions"><button id="open-skill-import" class="import-trigger" type="button" aria-haspopup="dialog" aria-controls="skill-import-modal" aria-label="通过 GitHub 地址添加 Skill"><span class="import-plus" aria-hidden="true">＋</span><span class="add-label-full">添加 Skill</span><span class="add-label-short">Skill</span></button><button id="open-prompt-import" class="import-trigger import-trigger-ghost" type="button" aria-haspopup="dialog" aria-controls="prompt-import-modal" aria-label="添加提示词"><span class="import-plus" aria-hidden="true">＋</span><span class="add-label-full">添加提示词</span><span class="add-label-short">提示词</span></button></div></div>
     </div>
   </header>
   <main class="shell">
     <section class="workspace" aria-label="图库浏览">
-      <div class="workspace-head">
-        <div class="workspace-title"><p class="eyebrow small">PROMPT & SKILL LIBRARY</p><h2>灵感素材库</h2></div>
-      <div class="tools">
-        <label class="search"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="搜索风格、Skill、标签、提示词…" autocomplete="off" aria-label="搜索素材"><kbd>/</kbd></label>
-        <select id="sort" aria-label="排序方式"><option value="new">最近更新</option><option value="az">名称 A—Z</option></select>
-      </div>
-        <div class="workspace-count" aria-label="图库素材数量"><strong id="hero-count">—</strong><span>个素材</span></div>
-      </div>
       <div class="tabs-row">
         <nav class="tabs" id="nav-tabs" aria-label="素材类型">
           <button type="button" data-type="all" class="active">全部素材 <span id="count-all">0</span></button>

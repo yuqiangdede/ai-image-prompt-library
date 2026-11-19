@@ -46,6 +46,8 @@
   }
   const favoriteKey = "prompt-gallery-favorites-v2";
   const viewKey = "prompt-gallery-view-v1";
+  const sortKey = "prompt-gallery-sort-v1";
+  const sortModes = ["new", "old", "az", "za", "fav"];
   const promptUrlLimit = 6000; // GitHub errors on very long issue-prefill URLs
   const escapeHtml = text => String(text ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" })[c]);
   const address = path => String(path || "").startsWith("https://") ? path : "./" + String(path || "").split("/").map(encodeURIComponent).join("/");
@@ -88,6 +90,10 @@
     const savedView = localStorage.getItem(viewKey);
     if (savedView === "large" || savedView === "small") state.view = savedView;
   } catch { state.view = "large"; }
+  try {
+    const savedSort = localStorage.getItem(sortKey);
+    if (sortModes.includes(savedSort)) state.sort = savedSort;
+  } catch { state.sort = "new"; }
   function showToast(message) {
     $("toast").textContent = message;
     $("toast").hidden = false;
@@ -111,17 +117,29 @@
     try { localStorage.setItem(viewKey, state.view); }
     catch { showToast("此浏览器暂时无法记住图标大小"); }
   }
+  /* 排序：最近更新 / 最早更新 / 名称升降序 / 收藏优先。默认最近更新，日期相同按名称。 */
+  function sortItems(list) {
+    const byTitle = (a, b) => a.title.localeCompare(b.title, "zh-CN");
+    const byNew = (a, b) => String(b.updated_at).localeCompare(String(a.updated_at)) || byTitle(a, b);
+    const byOld = (a, b) => String(a.updated_at).localeCompare(String(b.updated_at)) || byTitle(a, b);
+    const byFav = (a, b) => (Number(state.favorites.has(b.id)) - Number(state.favorites.has(a.id))) || byNew(a, b);
+    const order = state.sort === "az" ? byTitle
+      : state.sort === "za" ? (a, b) => byTitle(b, a)
+      : state.sort === "old" ? byOld
+      : state.sort === "fav" ? byFav
+      : byNew;
+    return list.sort(order);
+  }
   function listFiltered() {
     const q = state.search.trim().toLocaleLowerCase();
-    return state.items.filter(item => {
+    const matched = state.items.filter(item => {
       if (state.kind === "favorites" && !state.favorites.has(item.id)) return false;
       if (state.kind !== "all" && state.kind !== "favorites" && state.kind !== item.kind) return false;
       if (state.category !== "all" && !browseOf(item).includes(state.category)) return false;
       if (q && ![item.title, item.description, item.category, item.model, ...(item.tags || []), item.search_text].join(" ").toLocaleLowerCase().includes(q)) return false;
       return true;
-    }).sort((a, b) => state.sort === "az"
-      ? a.title.localeCompare(b.title, "zh-CN")
-      : String(b.updated_at).localeCompare(String(a.updated_at)) || a.title.localeCompare(b.title, "zh-CN"));
+    });
+    return sortItems(matched);
   }
   function renderBrowseCategories() {
     const counts = new Map(browseGroups.map(([id]) => [id, 0]));
@@ -573,11 +591,15 @@
   function bind() {
     /* 卡片列数/宽度变化时（窗口缩放、小图视图、调节滑块改排法）重新截断文字 */
     let lastGalleryWidth = 0;
+    let fitFrame = 0;
     const refit = () => {
       const width = Math.round($("gallery").getBoundingClientRect().width);
       if (width === lastGalleryWidth) return;
       lastGalleryWidth = width;
-      fitCardText();
+      /* 下一帧再截断文字：在 ResizeObserver 回调里同步改布局会触发
+         “ResizeObserver loop completed with undelivered notifications”。 */
+      cancelAnimationFrame(fitFrame);
+      fitFrame = requestAnimationFrame(() => fitCardText());
     };
     if (window.ResizeObserver) {
       new ResizeObserver(refit).observe($("gallery"));
@@ -764,7 +786,12 @@
       state.kind = "all"; state.category = node.dataset.category; render();
     });
     $("search").addEventListener("input", event => { state.search = event.target.value; render(); });
-    $("sort").addEventListener("change", event => { state.sort = event.target.value; render(); });
+    $("sort").addEventListener("change", event => {
+      state.sort = event.target.value;
+      render();
+      try { localStorage.setItem(sortKey, state.sort); }
+      catch { showToast("此浏览器暂时无法记住排序方式"); }
+    });
     /* 封面地址失效时退回品牌占位，避免相机/网络问题留下空白灰块 */
     $("gallery").addEventListener("error", event => {
       const img = event.target;
@@ -837,6 +864,7 @@
   async function init() {
     bind();
     applyView();
+    $("sort").value = state.sort;
     try {
       const response = await fetch("./data/catalog.json", { cache: "no-store" });
       if (!response.ok) throw new Error("HTTP " + response.status);

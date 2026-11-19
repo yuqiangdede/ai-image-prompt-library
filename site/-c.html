@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f3f0e7">
+<title>灵感素材库 · CONTACT SHEET｜Prompt &amp; Skill Gallery</title>
+<link rel="stylesheet" href="./tokens.css">
+<style>
+:root{
+  --color-bg:#f3f0e7;
+  --color-surface:#fffdf6;
+  --color-text:#111110;
+  --color-muted:#6f6b5f;
+  --color-line:#111110;
+  --color-primary:#d8401c;
+  --color-on-primary:#fffdf6;
+  --c-mono:ui-monospace,SFMono-Regular,"JetBrains Mono",Menlo,Consolas,monospace;
+  --c-sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  --c-hair:1.5px;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--color-bg);color:var(--color-text);font-family:var(--c-sans)}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:inherit;text-decoration:none}
+[hidden]{display:none!important}
+:focus-visible{outline:2.5px solid var(--color-primary);outline-offset:2px}
+
+/* ---- 顶栏 ---- */
+.bar{position:sticky;top:0;z-index:30;display:flex;align-items:stretch;height:58px;background:var(--color-surface);border-bottom:var(--c-hair) solid var(--color-line)}
+.brand{display:flex;align-items:center;gap:9px;padding:0 18px;border-right:var(--c-hair) solid var(--color-line)}
+.brand b{font-family:var(--c-mono);font-weight:700;font-size:15px;letter-spacing:.5px}
+.brand span{font-family:var(--c-mono);font-size:12px;letter-spacing:2px;color:var(--color-muted)}
+.find{flex:1;display:flex;align-items:center;gap:9px;padding:0 16px;border-right:var(--c-hair) solid var(--color-line);min-width:0}
+.find i{font-style:normal;transform:rotate(-18deg);color:var(--color-muted)}
+.find input{flex:1;min-width:0;min-height:44px;border:0;outline:0;background:none;font-family:var(--c-mono);font-size:12px;letter-spacing:.2px}
+.find input::placeholder{color:#8d8878;text-transform:uppercase;letter-spacing:1px;font-size:12px}
+.pick{display:flex;align-items:center;gap:8px;padding:0 14px;border-right:var(--c-hair) solid var(--color-line)}
+.pick span{font-family:var(--c-mono);font-size:12px;letter-spacing:1.4px;color:var(--color-muted)}
+.pick select{border:0;background:none;outline:0;font-family:var(--c-mono);font-size:12px;font-weight:600;padding:4px 2px;min-height:44px}
+.tally{display:flex;align-items:center;gap:5px;padding:0 16px;font-family:var(--c-mono);font-size:12px;letter-spacing:1.2px;color:var(--color-muted)}
+.tally b{font-size:16px;color:var(--color-text)}
+
+/* ---- 分类条 ---- */
+.chips{display:flex;overflow-x:auto;background:var(--color-surface);border-bottom:var(--c-hair) solid var(--color-line);scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chips button{flex:none;min-height:32px;border:0;border-right:1px solid #c9c4b4;background:none;padding:10px 13px;font-family:var(--c-mono);font-size:12px;letter-spacing:.4px;white-space:nowrap;color:#4a463c}
+.chips button span{margin-left:6px;font-size:12px;color:#6a6557}
+.chips button[aria-pressed="true"]{background:var(--color-text);color:var(--color-surface)}
+.chips button[aria-pressed="true"] span{color:inherit}
+.chips .sep{flex:none;border-right:var(--c-hair) solid var(--color-line)}
+
+/* ---- 抬头 ---- */
+.sheet-head{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:11px 18px;border-bottom:1px solid #c9c4b4;font-family:var(--c-mono);font-size:12px;letter-spacing:1.4px;color:var(--color-muted)}
+.sheet-head b{color:var(--color-text);font-weight:700}
+.sheet-head a{display:inline-block;padding:8px 0}
+.sheet-head a:hover{color:var(--color-primary)}
+
+/* ---- 印相表 ---- */
+.sheet{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:1px;background:var(--color-line);border-bottom:var(--c-hair) solid var(--color-line)}
+.cell{position:relative;display:block;width:100%;border:0;padding:0;background:var(--color-surface);text-align:left}
+.cell img{display:block;width:100%;aspect-ratio:1/1;object-fit:cover;filter:grayscale(.32) contrast(1.03);transition:filter .35s,transform .6s}
+.cell:hover img,.cell:focus-visible img{filter:none;transform:scale(1.03)}
+.no{position:absolute;top:0;left:0;padding:5px 7px;background:var(--color-surface);font-family:var(--c-mono);font-size:12px;letter-spacing:.8px;line-height:1;color:var(--color-text);border-right:1px solid var(--color-line);border-bottom:1px solid var(--color-line)}
+.cap{display:block;padding:7px 8px 9px;min-height:52px;font-family:var(--c-mono);font-size:12px;line-height:1.45;letter-spacing:.1px;color:#2a2721}
+.cell:hover .cap{color:var(--color-primary)}
+.cap em{display:block;font-style:normal;font-size:12px;letter-spacing:1.4px;color:#6a6557;margin-bottom:3px}
+.empty{grid-column:1/-1;background:var(--color-surface);padding:70px 20px;text-align:center;font-family:var(--c-mono);font-size:12px;color:var(--color-muted)}
+
+/* ---- 放大片 ---- */
+.light{position:fixed;inset:0;z-index:60;background:rgba(243,240,231,.96);display:grid;place-items:center;padding:34px}
+.light-inner{display:grid;grid-template-columns:minmax(0,1fr) 300px;width:min(1240px,100%);max-height:calc(100vh - 68px);background:var(--color-surface);border:var(--c-hair) solid var(--color-line)}
+.light figure{margin:0;display:grid;place-items:center;padding:22px;border-right:var(--c-hair) solid var(--color-line);min-height:0;background:#e9e5d9}
+.light img{max-width:100%;max-height:calc(100vh - 116px);object-fit:contain;display:block}
+.light aside{display:flex;flex-direction:column;gap:12px;padding:22px;overflow:auto}
+.light .meta-top{display:flex;align-items:center;justify-content:space-between;gap:10px;font-family:var(--c-mono);font-size:12px;letter-spacing:1.6px;color:var(--color-muted)}
+.light .close{width:44px;height:44px;border:var(--c-hair) solid var(--color-line);background:none;font-size:14px;display:grid;place-items:center}
+.light h2{margin:0;font-size:19px;line-height:1.45;font-weight:800;letter-spacing:-.2px}
+.light .desc{margin:0;font-size:12.5px;line-height:1.85;color:#4a463c}
+.light .tags{display:flex;flex-wrap:wrap;gap:5px}
+.light .tags span{font-family:var(--c-mono);font-size:12px;letter-spacing:.8px;padding:4px 6px;border:1px solid #c9c4b4}
+.light .go{margin-top:auto;padding-top:14px;border-top:1px solid #c9c4b4;font-family:var(--c-mono);font-size:12px;letter-spacing:.6px}
+.light .go a{display:inline-block;padding:8px 0}
+.light .go a{color:var(--color-primary);border-bottom:1.5px solid var(--color-primary);padding-bottom:2px}
+
+@media(max-width:1300px){.sheet{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@media(max-width:1000px){.sheet{grid-template-columns:repeat(4,minmax(0,1fr))}.pick span{display:none}}
+@media(max-width:760px){
+  .bar{height:52px}.brand span{display:none}.tally{padding:0 12px}
+  .sheet{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cap{font-size:11.5px}
+  .light{padding:0}
+  .light-inner{grid-template-columns:1fr;border:0;max-height:100dvh;height:100dvh}
+  .light figure{border-right:0;border-bottom:var(--c-hair) solid var(--color-line)}
+  .light img{max-height:52vh}
+}
+@media(max-width:480px){.sheet{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<header class="bar">
+  <a class="brand" href="./index.html"><b>P✳S</b><span>PROMPT LIBRARY</span></a>
+  <label class="find"><i aria-hidden="true">⌕</i><input id="q" type="search" placeholder="search 风格 / skill / 标签" autocomplete="off" aria-label="搜索素材"></label>
+  <label class="pick"><span>SORT</span>
+    <select id="sort" aria-label="排序方式">
+      <option value="new">最近更新</option>
+      <option value="old">最早更新</option>
+      <option value="az">名称 A—Z</option>
+      <option value="za">名称 Z—A</option>
+    </select>
+  </label>
+  <span class="tally"><b id="count">—</b>/ 75</span>
+</header>
+<nav class="chips" id="chips" aria-label="筛选"></nav>
+<div class="sheet-head"><span><b id="sheet-no">SHEET 01</b> · AI 生图灵感档案</span><span id="result-line">— ITEMS</span><span><a href="./index.html">在完整图库中打开 ↗</a></span></div>
+<main class="sheet" id="sheet" aria-live="polite"></main>
+<div class="light" id="light" hidden>
+  <div class="light-inner">
+    <figure><img id="light-img" alt=""></figure>
+    <aside>
+      <div class="meta-top"><span id="light-kind">PROMPT</span><button class="close" id="light-close" type="button" aria-label="关闭">✕</button></div>
+      <h2 id="light-title"></h2>
+      <p class="desc" id="light-desc"></p>
+      <div class="tags" id="light-tags"></div>
+      <p class="go"><a id="light-go" href="./index.html">在完整图库中打开 ↗</a></p>
+    </aside>
+  </div>
+</div>
+<script>
+(function(){
+  "use strict";
+  var state = { items: [], q: "", kind: "all", cat: "all", sort: "new" };
+  var byId = function(id){ return document.getElementById(id); };
+  var enc = function(p){ p = String(p || ""); return /^https?:\/\//.test(p) ? p : "./" + p.split("/").map(encodeURIComponent).join("/"); };
+  var catOf = function(item){ return String(item.category || "").split(" / ")[0].trim() || "其他"; };
+  var pad = function(n){ return String(n).padStart(3, "0"); };
+
+  function visible(){
+    var q = state.q.trim().toLowerCase();
+    var list = state.items.filter(function(item){
+      if (state.kind !== "all" && item.kind !== state.kind) return false;
+      if (state.cat !== "all" && catOf(item) !== state.cat) return false;
+      if (!q) return true;
+      var hay = [item.title, item.description, item.category, (item.tags || []).join(" ")].join(" ").toLowerCase();
+      return hay.indexOf(q) > -1;
+    });
+    var byTitle = function(a, b){ return a.title.localeCompare(b.title, "zh-CN"); };
+    if (state.sort === "az") list.sort(byTitle);
+    else if (state.sort === "za") list.sort(function(a, b){ return byTitle(b, a); });
+    else if (state.sort === "old") list.sort(function(a, b){ return String(a.updated_at).localeCompare(String(b.updated_at)) || byTitle(a, b); });
+    else list.sort(function(a, b){ return String(b.updated_at).localeCompare(String(a.updated_at)) || byTitle(a, b); });
+    return list;
+  }
+
+  function renderChips(){
+    var kinds = [["all", "ALL"], ["prompt", "PROMPT"], ["skill", "SKILL"]];
+    var counts = {};
+    state.items.forEach(function(item){ var c = catOf(item); counts[c] = (counts[c] || 0) + 1; });
+    var cats = Object.keys(counts).sort(function(a, b){ return counts[b] - counts[a]; });
+    var kindHtml = kinds.map(function(pair){
+      var n = pair[0] === "all" ? state.items.length : state.items.filter(function(i){ return i.kind === pair[0]; }).length;
+      return '<button type="button" data-kind="' + pair[0] + '" aria-pressed="' + (state.kind === pair[0]) + '">' + pair[1] + '<span>' + n + '</span></button>';
+    }).join("");
+    var catHtml = ['<button type="button" data-cat="all" aria-pressed="' + (state.cat === "all") + '">全部分类<span>' + state.items.length + '</span></button>']
+      .concat(cats.map(function(c){
+        return '<button type="button" data-cat="' + c + '" aria-pressed="' + (state.cat === c) + '">' + c + '<span>' + counts[c] + '</span></button>';
+      })).join("");
+    byId("chips").innerHTML = kindHtml + '<span class="sep" aria-hidden="true"></span>' + catHtml;
+  }
+
+  function render(){
+    var list = visible();
+    byId("count").textContent = state.items.length;
+    byId("result-line").textContent = String(list.length).padStart(2, "0") + " ITEMS";
+    if (!list.length){
+      byId("sheet").innerHTML = '<p class="empty">没有匹配的底片 —— 换个关键词或分类。</p>';
+      return;
+    }
+    byId("sheet").innerHTML = list.map(function(item, i){
+      var cover = (item.images && item.images[0]) || item.cover || "";
+      return '<button class="cell" type="button" data-open="' + item.id + '">' +
+        '<img loading="lazy" src="' + enc(cover) + '" alt="' + item.title + ' 效果图">' +
+        '<span class="no">' + pad(i + 1) + '</span>' +
+        '<span class="cap"><em>' + item.kind.toUpperCase() + '</em>' + item.title + '</span>' +
+      '</button>';
+    }).join("");
+  }
+
+  function openLight(id){
+    var item = state.items.filter(function(i){ return i.id === id; })[0];
+    if (!item) return;
+    var src = (item.images && item.images[0]) || item.cover || "";
+    byId("light-img").src = enc(src);
+    byId("light-img").alt = item.title + " 效果图";
+    byId("light-kind").textContent = item.kind.toUpperCase() + " / " + catOf(item);
+    byId("light-title").textContent = item.title;
+    byId("light-desc").textContent = item.description || "";
+    byId("light-tags").innerHTML = (item.tags || []).map(function(t){ return '<span>' + t + '</span>'; }).join("");
+    byId("light-go").href = "./index.html?item=" + encodeURIComponent(item.id);
+    byId("light").hidden = false;
+    document.body.style.overflow = "hidden";
+  }
+  function closeLight(){
+    byId("light").hidden = true;
+    document.body.style.overflow = "";
+  }
+
+  document.addEventListener("click", function(event){
+    var kindBtn = event.target.closest("[data-kind]");
+    if (kindBtn){ state.kind = kindBtn.dataset.kind; renderChips(); render(); return; }
+    var catBtn = event.target.closest("[data-cat]");
+    if (catBtn){ state.cat = catBtn.dataset.cat; renderChips(); render(); return; }
+    var openBtn = event.target.closest("[data-open]");
+    if (openBtn){ openLight(openBtn.dataset.open); return; }
+    if (event.target.id === "light-close" || event.target.id === "light") closeLight();
+  });
+  byId("q").addEventListener("input", function(event){ state.q = event.target.value; render(); });
+  byId("sort").addEventListener("change", function(event){ state.sort = event.target.value; render(); });
+  document.addEventListener("keydown", function(event){
+    if (event.key === "Escape") closeLight();
+    if (event.key === "/" && document.activeElement !== byId("q")){ event.preventDefault(); byId("q").focus(); }
+  });
+
+  fetch("./data/catalog.json", { cache: "no-store" })
+    .then(function(response){ if (!response.ok) throw new Error("HTTP " + response.status); return response.json(); })
+    .then(function(data){ state.items = data.items || []; byId("count").textContent = state.items.length; renderChips(); render(); })
+    .catch(function(error){ byId("sheet").innerHTML = '<p class="empty">加载失败：' + error.message + '</p>'; });
+})();
+</script>
+</body>
+</html>
