@@ -1,0 +1,25 @@
+{
+  "title": "霜羽流云鹤氅仙衣｜冰蓝仙鹤刺绣仙侠礼服",
+  "description": "霜白冰蓝交领长裙，羽翼披肩、透明广袖、仙鹤流云刺绣与冰山纹拖尾，纯黑背景展示的东方仙侠华服。",
+  "category": "艺术创作",
+  "browse_categories": [
+    "art"
+  ],
+  "tags": [
+    "仙侠服饰",
+    "仙鹤刺绣",
+    "东方幻想",
+    "冰蓝礼服",
+    "羽翼披肩",
+    "透明纱袖",
+    "服装设计",
+    "黑色背景"
+  ],
+  "model": "GPT 图像生成",
+  "updated_at": "2026-11-23",
+  "cover": "images/cover.webp",
+  "images": [
+    "images/cover.webp"
+  ],
+  "related_skills": []
+}
