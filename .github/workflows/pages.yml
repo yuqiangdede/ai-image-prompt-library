@@ -59,6 +59,14 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Install image build dependency
+        run: python -m pip install "Pillow>=11.3,<13"
+      - name: Cache generated thumbnails
+        uses: actions/cache@v4
+        with:
+          path: .thumbnail-cache
+          key: gallery-thumbs-v1-${{ hashFiles('library/**', 'scripts/image_variants.py') }}
+          restore-keys: gallery-thumbs-v1-
       - name: Validate scripts and frontend
         run: |
           python -m py_compile scripts/add_prompt.py scripts/import_skill.py scripts/manage_skill.py
@@ -89,6 +97,7 @@ jobs:
           PY
           node --check site/app.js
           python -m unittest discover -s tests -p 'test_manage_gallery.py' -v
+          python -m unittest discover -s tests -p 'test_image_variants.py' -v
       - name: Import public Skill from owner issue
         id: import_skill
         if: github.event_name == 'issues' && startsWith(github.event.issue.title, '[导入 Skill]')

@@ -51,6 +51,14 @@
   const promptUrlLimit = 6000; // GitHub errors on very long issue-prefill URLs
   const escapeHtml = text => String(text ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" })[c]);
   const address = path => String(path || "").startsWith("https://") ? path : "./" + String(path || "").split("/").map(encodeURIComponent).join("/");
+  const displayPath = (item, path, size) => item?.image_variants?.[path]?.[String(size)] || path;
+  const cardSize = () => state.view === "small" ? 320 : 640;
+  function displayImage(item, path, size, alt, attributes = "") {
+    const original = address(path);
+    const preview = address(displayPath(item, path, size));
+    return '<img decoding="async"' + attributes + ' src="' + escapeHtml(preview) +
+      '" data-original="' + escapeHtml(original) + '" alt="' + escapeHtml(alt) + '">';
+  }
   const typeName = item => item.kind === "skill" ? "SKILL" : "PROMPT";
   const ellipsis = "…";
   function galleryCardWidth() {
@@ -173,8 +181,8 @@
       /* 首屏 4 张优先加载，其余懒加载 */
       const eager = index < 4;
       const image = coverSources.length
-        ? '<img' + (eager ? ' loading="eager" fetchpriority="high"' : ' loading="lazy"') +
-          ' src="' + escapeHtml(address(coverSources[0])) + '" alt="' + escapeHtml(item.title) + ' 效果图">'
+        ? displayImage(item, coverSources[0], cardSize(), item.title + " 效果图",
+            eager ? ' loading="eager" fetchpriority="high"' : ' loading="lazy"')
         : '<span class="image-fallback">✳</span>';
       const coverDots = coverSources.length > 1
         ? '<div class="card-carousel-dots" role="group" aria-label="切换封面">' +
@@ -200,7 +208,9 @@
   }
   function selectImage(path) {
     $("detail-hero").innerHTML = path
-      ? '<img src="' + escapeHtml(address(path)) + '" alt="选中效果图的高清预览">'
+      ? '<a class="detail-original-link" href="' + escapeHtml(address(path)) + '" target="_blank" rel="noopener noreferrer" title="查看原图">' +
+        displayImage(state.selected, path, 1080, "选中效果图的预览") +
+        '<span>查看高清原图 ↗</span></a>'
       : "未上传效果图";
     document.querySelectorAll("#detail-thumbs button").forEach(el => el.classList.toggle("active", el.dataset.image === path));
   }
@@ -221,8 +231,8 @@
     $("detail-tags").innerHTML = (item.tags || []).map(t => "<span>" + escapeHtml(t) + "</span>").join("");
     $("detail-meta").innerHTML = "<div>适用模型<strong>" + escapeHtml(item.model) + "</strong></div><div>图库更新时间<strong>" + escapeHtml(item.updated_at) + "</strong></div>";
     $("detail-thumbs").innerHTML = (item.images || []).map(path =>
-      '<button type="button" data-image="' + escapeHtml(path) + '" aria-label="切换预览图片"><img loading="lazy" src="' +
-      escapeHtml(address(path)) + '" alt="效果图缩略图"></button>').join("");
+      '<button type="button" data-image="' + escapeHtml(path) + '" aria-label="切换预览图片">' +
+      displayImage(item, path, 160, "效果图缩略图", ' loading="lazy"') + '</button>').join("");
     selectImage(item.cover || (item.images || [])[0] || "");
     $("source-box").hidden = !item.source_url;
     if (item.source_url) {
@@ -404,7 +414,7 @@
     const tiles = images.map((image, index) => {
       const kept = image.kept;
       const cover = manage.cover === image.src;
-      const preview = address(image.src);
+      const preview = address(displayPath(manage.item, image.src, 320));
       return '<figure class="manage-image' + (kept ? "" : " is-dropped") + '">' +
         '<div class="manage-image-frame">' +
         '<img loading="lazy" src="' + escapeHtml(preview) + '" alt="' +
@@ -792,10 +802,15 @@
       try { localStorage.setItem(sortKey, state.sort); }
       catch { showToast("此浏览器暂时无法记住排序方式"); }
     });
-    /* 封面地址失效时退回品牌占位，避免相机/网络问题留下空白灰块 */
-    $("gallery").addEventListener("error", event => {
+    /* 缩略图失效时只回退一次原图；封面仍失败则显示占位。 */
+    document.addEventListener("error", event => {
       const img = event.target;
-      const wrap = img instanceof HTMLImageElement ? img.closest(".image-wrap") : null;
+      if (!(img instanceof HTMLImageElement)) return;
+      if (img.dataset.original && img.getAttribute("src") !== img.dataset.original) {
+        img.src = img.dataset.original;
+        return;
+      }
+      const wrap = img.closest(".image-wrap");
       if (!wrap || !wrap.contains(img)) return;
       const fallback = document.createElement("span");
       fallback.className = "image-fallback";
@@ -812,8 +827,8 @@
         if (images.length < 2) return;
         const next = Math.min(images.length - 1, Math.max(0, Number(dot.dataset.slideTo) || 0));
         card.dataset.coverIndex = String(next);
-        const preview = card.querySelector(".image-wrap img");
-        if (preview) preview.src = address(images[next]);
+        const wrap = card.querySelector(".image-wrap");
+        if (wrap) wrap.innerHTML = displayImage(item, images[next], cardSize(), item.title + " 效果图");
         card.querySelectorAll(".card-carousel-dots button").forEach((el, index) => {
           if (index === next) el.setAttribute("aria-current", "true");
           else el.removeAttribute("aria-current");

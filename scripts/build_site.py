@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build static prompt / Skill gallery. Python standard library only."""
+"""Build static prompt / Skill gallery and WebP display images."""
 import hashlib
 import json
 import os
@@ -9,6 +9,11 @@ import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlparse
+
+try:
+    from .image_variants import image_variants
+except ImportError:
+    from image_variants import image_variants
 
 ROOT = Path(__file__).resolve().parents[1]
 SITE = ROOT / "site"
@@ -81,12 +86,18 @@ def build():
     (DIST / "data").mkdir(exist_ok=True)
     (DIST / "downloads" / "skills").mkdir(parents=True, exist_ok=True)
     items = []
+    cache = Path(os.environ.get("GALLERY_THUMBNAIL_CACHE", ROOT / ".thumbnail-cache"))
+    variants = {}
     for kind, directory in (("prompt", "prompts"), ("skill", "skills")):
         base = LIBRARY / directory
         if not base.exists():
             continue
         for folder in sorted(x for x in base.iterdir() if x.is_dir() and (x / "meta.json").exists()):
             item = make_item(folder, kind)
+            for path in set([item["cover"], *item["images"]]) - {""}:
+                if path not in variants:
+                    variants[path] = image_variants(path, ROOT, DIST, cache)
+            item["image_variants"] = {path: variants[path] for path in set([item["cover"], *item["images"]]) - {""} if variants[path]}
             if kind == "skill" and not item["external_only"]:
                 zip_file = DIST / "downloads" / "skills" / (folder.name + ".zip")
                 with zipfile.ZipFile(zip_file, "w", zipfile.ZIP_DEFLATED) as z:
@@ -109,7 +120,7 @@ def build():
     (DIST / "data" / "catalog.json").write_text(
         json.dumps(catalog, ensure_ascii=False, indent=2), encoding="utf-8")
     (DIST / ".nojekyll").write_text("", encoding="utf-8")
-    print(f"Generated {len(items)} gallery items")
+    print(f"Generated {len(items)} gallery items; {sum(bool(v) for v in variants.values())} images with thumbnails")
 
 if __name__ == "__main__":
     build()
