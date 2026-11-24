@@ -95,6 +95,7 @@ jobs:
           assert normalize_tags("海报, 平面设计，海报") == ["海报", "平面设计"]
           assert normalize_prompt("a\r\nb") == "a\nb\n"
           PY
+          python -m unittest discover -s tests -p 'test_usage_categories.py' -v
           node --check site/app.js
           python -m unittest discover -s tests -p 'test_manage_gallery.py' -v
           python -m unittest discover -s tests -p 'test_image_variants.py' -v
@@ -146,6 +147,14 @@ jobs:
           git add library/skills
           if ! git diff --cached --quiet; then
             git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'chore(skills): sync upstream changes'
+            git push origin HEAD:main
+          fi
+      - name: Normalize gallery usage tags
+        run: |
+          python scripts/usage_categories.py
+          git add library
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'chore(gallery): normalize usage tags'
             git push origin HEAD:main
           fi
       - name: Build static gallery

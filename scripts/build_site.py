@@ -12,8 +12,10 @@ from urllib.parse import urlparse
 
 try:
     from .image_variants import image_variants
+    from .usage_categories import classified_tags
 except ImportError:
     from image_variants import image_variants
+    from usage_categories import classified_tags
 
 ROOT = Path(__file__).resolve().parents[1]
 SITE = ROOT / "site"
@@ -46,17 +48,18 @@ def make_item(folder, kind):
     body = folder / ("SKILL.md" if kind == "skill" else "prompt.md")
     if not body.is_file():
         raise ValueError(f"Missing {body}")
+    body_text = body.read_text(encoding="utf-8")
     images = [img_path(p, folder) for p in meta.get("images", [])]
     cover = img_path(meta["cover"], folder) if meta.get("cover") else (images[0] if images else "")
     upstream = read_json(folder / "upstream.json") if (folder / "upstream.json").exists() else {}
     return {
         "id": f"{kind}:{folder.name}", "slug": folder.name, "kind": kind,
         "title": meta["title"], "description": meta["description"], "category": meta["category"],
-        "tags": meta.get("tags", []), "model": meta.get("model", "ChatGPT"),
+        "tags": classified_tags(meta, folder.name, body_text), "model": meta.get("model", "ChatGPT"),
         "updated_at": meta.get("updated_at", "2026-11-12"),
         "cover": cover, "images": images, "cover_layout": meta.get("cover_layout", ""), "related_skills": meta.get("related_skills", []),
         "content_path": body.relative_to(ROOT).as_posix(),
-        "search_text": body.read_text(encoding="utf-8"),
+        "search_text": body_text,
         "source_url": upstream.get("url", meta.get("source_url", "")),
         "source_sha": upstream.get("sha", ""),
         "source_branch": upstream.get("branch", ""),

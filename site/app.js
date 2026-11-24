@@ -5,7 +5,9 @@
   const state = { items: [], catalog: null, search: "", kind: "all", category: "all", sort: "new", view: "large", favorites: new Set(), selected: null, text: "", manage: null };
 
   // 大分类可交叉归属；旧素材的 category 和 tags 保留用于详情和搜索。
+  const usageGroups = [["generation", "生图类"], ["optimization", "优化类"]];
   const browseGroups = [
+    ...usageGroups,
     ["poster","海报类"],["person","人物生图类"],["retouch","人像优化类"],
     ["photo","摄影风格类"],["art","插画艺术类"],["scene","场景建筑类"],
     ["brand","品牌产品类"],["other","其他"]
@@ -28,8 +30,12 @@
     }
   }
   function browseOf(item) {
+    const usage = (item.tags || []).includes("优化类") ? "optimization" : "generation";
+    return [usage, ...themeOf(item)];
+  }
+  function themeOf(item) {
     if (Array.isArray(item.browse_categories) && item.browse_categories.length) {
-      const valid = item.browse_categories.filter(id => browseGroups.some(group => group[0] === id));
+      const valid = item.browse_categories.filter(id => browseGroups.some(group => group[0] === id) && !usageGroups.some(group => group[0] === id));
       if (valid.length) return [...new Set(valid)];
     }
     if (browseIndex.has(item.slug)) return browseIndex.get(item.slug);
