@@ -1,0 +1,22 @@
+{
+  "title": "深影塑光｜摄影师眼中极致的高反差光影美学",
+  "description": "保留原始照片构图与主体，采用统一方向性光场、宽幅渐变蒙版与高反差电影调色，展示花卉市场原图与优化图对照。",
+  "category": "摄影后期 / 光影优化",
+  "tags": [
+    "优化类",
+    "摄影后期",
+    "高反差",
+    "光影重塑",
+    "电影调色",
+    "线性渐变",
+    "原图对照"
+  ],
+  "model": "ChatGPT",
+  "updated_at": "2026-11-25",
+  "cover": "images/cover.webp",
+  "images": [
+    "images/cover.webp",
+    "images/original.webp"
+  ],
+  "related_skills": []
+}
