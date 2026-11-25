@@ -1,0 +1,21 @@
+{
+  "title": "抱花行走的几何剪影｜社论人物海报",
+  "description": "以参考照片为基础，保留成人角色的辨识特征，将人物与超大主题物体转绘为现代平面几何社论海报。",
+  "category": "海报类",
+  "tags": [
+    "优化类",
+    "人物转绘",
+    "几何插画",
+    "社论海报",
+    "花卉",
+    "印刷颗粒",
+    "3:4"
+  ],
+  "model": "GPT 图像生成",
+  "updated_at": "2026-11-25",
+  "cover": "images/cover.webp",
+  "images": [
+    "images/cover.webp"
+  ],
+  "related_skills": []
+}
