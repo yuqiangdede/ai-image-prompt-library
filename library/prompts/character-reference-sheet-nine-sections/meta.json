@@ -1,0 +1,22 @@
+{
+  "title": "角色设定参考表｜九宫分区与多角度身份一致性",
+  "description": "以上传的单张人物图为唯一参考，生成3:4专业角色设定表，包含九个英文分区及多角度、表情、细节、服装和场景，附原图与生成效果双封面。",
+  "category": "人物生图",
+  "tags": [
+    "优化类",
+    "角色设定",
+    "角色一致性",
+    "多角度视图",
+    "人物参考表",
+    "黑白摄影",
+    "图生图"
+  ],
+  "model": "GPT 图像生成",
+  "updated_at": "2026-11-25",
+  "cover": "images/cover.webp",
+  "images": [
+    "images/cover.webp",
+    "images/original.webp"
+  ],
+  "related_skills": []
+}
