@@ -2,7 +2,7 @@
 
 以图片为入口的 Prompt 与 Agent Skill 资料库。无需 VPS、数据库或生图 API。GitHub 保存文本与图片，GitHub Pages 提供手机和电脑都能访问的响应式图库。
 
-- **图库**：搜索、分类、效果图查看、复制 Prompt / Skill 指令、下载完整 Skill ZIP、本地收藏。
+- **图库**：搜索、分类、效果图查看、复制 Prompt / Skill 指令、下载完整 Skill ZIP。
 - **添加提示词**：图库右上角填写提示词和封面，经 GitHub Issue 确认后自动写入并发布。
 - **上游关联**：Skill 可绑定原始 GitHub 仓库，展示作者、来源地址、同步 Commit。
 - **自动同步**：GitHub Actions 每天检查并同步允许再分发的上游 Skill 文本、配置与脚本；保留本地 `meta.json` 和封面设置。

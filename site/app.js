@@ -2,15 +2,15 @@
 (() => {
   "use strict";
   const $ = id => document.getElementById(id);
-  const state = { items: [], catalog: null, search: "", kind: "all", category: "all", sort: "new", view: "large", favorites: new Set(), selected: null, text: "", manage: null };
+  const state = { items: [], catalog: null, search: "", kind: "all", category: "all", sort: "new", view: "large", selected: null, text: "", manage: null };
 
   // 大分类可交叉归属；旧素材的 category 和 tags 保留用于详情和搜索。
-  const usageGroups = [["generation", "生图类"], ["optimization", "优化类"]];
+  const usageGroups = [["generation", "生图"], ["optimization", "优化"]];
   const browseGroups = [
     ...usageGroups,
-    ["poster","海报类"],["person","人物生图类"],["retouch","人像优化类"],
-    ["photo","摄影风格类"],["art","插画艺术类"],["scene","场景建筑类"],
-    ["brand","品牌产品类"],["other","其他"]
+    ["poster","海报"],["person","人物生图"],["retouch","人像优化"],
+    ["photo","摄影风格"],["art","插画艺术"],["scene","场景建筑"],
+    ["brand","品牌产品"],["other","其他"]
   ];
   // 已收录素材人工归类；添加新素材时由下方关键词规则兜底。
   const browseSlugs = {
@@ -50,10 +50,9 @@
     if (/品牌|产品|商品|电商|广告|包装|logo/i.test(words)) ids.push("brand");
     return ids.length ? [...new Set(ids)] : ["other"];
   }
-  const favoriteKey = "prompt-gallery-favorites-v2";
   const viewKey = "prompt-gallery-view-v1";
   const sortKey = "prompt-gallery-sort-v1";
-  const sortModes = ["new", "old", "az", "za", "fav"];
+  const sortModes = ["new", "old", "az", "za"];
   const promptUrlLimit = 6000; // GitHub errors on very long issue-prefill URLs
   const escapeHtml = text => String(text ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" })[c]);
   const address = path => String(path || "").startsWith("https://") ? path : "./" + String(path || "").split("/").map(encodeURIComponent).join("/");
@@ -99,7 +98,6 @@
   }
   let timer;
 
-  try { state.favorites = new Set(JSON.parse(localStorage.getItem(favoriteKey) || "[]")); } catch { state.favorites = new Set(); }
   try {
     const savedView = localStorage.getItem(viewKey);
     if (savedView === "large" || savedView === "small") state.view = savedView;
@@ -114,10 +112,6 @@
     clearTimeout(timer);
     timer = setTimeout(() => $("toast").hidden = true, 2300);
   }
-  function saveFavorites() {
-    try { localStorage.setItem(favoriteKey, JSON.stringify([...state.favorites])); }
-    catch { showToast("此浏览器暂时无法保存收藏"); }
-  }
   function syncScrollLock() {
     document.body.style.overflow = (!$("detail-modal").hidden || !$("skill-import-modal").hidden ||
       !$("prompt-import-modal").hidden || !$("skill-manage-modal").hidden) ? "hidden" : "";
@@ -131,38 +125,105 @@
     try { localStorage.setItem(viewKey, state.view); }
     catch { showToast("此浏览器暂时无法记住图标大小"); }
   }
-  /* 排序：最近更新 / 最早更新 / 名称升降序 / 收藏优先。默认最近更新，日期相同按名称。 */
+  /* 排序：最近更新 / 最早更新 / 名称升降序。默认最近更新，日期相同按名称。 */
   function sortItems(list) {
     const byTitle = (a, b) => a.title.localeCompare(b.title, "zh-CN");
     const byNew = (a, b) => String(b.updated_at).localeCompare(String(a.updated_at)) || byTitle(a, b);
     const byOld = (a, b) => String(a.updated_at).localeCompare(String(b.updated_at)) || byTitle(a, b);
-    const byFav = (a, b) => (Number(state.favorites.has(b.id)) - Number(state.favorites.has(a.id))) || byNew(a, b);
     const order = state.sort === "az" ? byTitle
       : state.sort === "za" ? (a, b) => byTitle(b, a)
       : state.sort === "old" ? byOld
-      : state.sort === "fav" ? byFav
       : byNew;
     return list.sort(order);
   }
   function listFiltered() {
     const q = state.search.trim().toLocaleLowerCase();
     const matched = state.items.filter(item => {
-      if (state.kind === "favorites" && !state.favorites.has(item.id)) return false;
-      if (state.kind !== "all" && state.kind !== "favorites" && state.kind !== item.kind) return false;
+      if (state.kind !== "all" && state.kind !== item.kind) return false;
       if (state.category !== "all" && !browseOf(item).includes(state.category)) return false;
       if (q && ![item.title, item.description, item.category, item.model, ...(item.tags || []), item.search_text].join(" ").toLocaleLowerCase().includes(q)) return false;
       return true;
     });
     return sortItems(matched);
   }
+  const tabsMore = () => $("nav-more");
+  function setTabsMore(open, focusToggle = false) {
+    const menu = $("nav-more-menu");
+    if (!menu) return;
+    const wasOpen = !menu.hidden;
+    menu.hidden = !open;
+    $("nav-more-toggle").setAttribute("aria-expanded", String(open));
+    if (!open && wasOpen && focusToggle) $("nav-more-toggle").focus();
+  }
+  function categoryButtons() {
+    const order = new Map(browseGroups.map(([id], index) => [id, index]));
+    return [...$("nav-tabs").querySelectorAll("[data-category]")]
+      .sort((a, b) => (order.get(a.dataset.category) ?? 99) - (order.get(b.dataset.category) ?? 99));
+  }
+  let tabsLayoutFrame = 0;
+  function scheduleTabsLayout() {
+    cancelAnimationFrame(tabsLayoutFrame);
+    tabsLayoutFrame = requestAnimationFrame(layoutNavTabs);
+  }
+  /* 分类标签不收进滚动条：先按自然宽度量一遍，放不下的按顺序收进「更多」。 */
+  function layoutNavTabs() {
+    const nav = $("nav-tabs");
+    const browse = $("browse-tabs");
+    const more = tabsMore();
+    const menu = $("nav-more-menu");
+    if (!nav || !browse || !more || !menu) return;
+    const toggle = $("nav-more-toggle");
+    const markMoreActive = label => {
+      toggle.classList.toggle("active", Boolean(label));
+      toggle.setAttribute("aria-label", label ? "更多分类，当前筛选：" + label : "更多分类");
+      toggle.title = label ? "更多分类（当前：" + label + "）" : "更多分类";
+    };
+    setTabsMore(false);
+    const buttons = categoryButtons();
+    if (!buttons.length) { more.hidden = true; markMoreActive(""); return; }
+    browse.append(...buttons);
+    more.hidden = true;
+    const available = nav.clientWidth;
+    if (!available) return;
+    const fixed = [...nav.querySelectorAll(":scope > button[data-type], :scope > .tabs-divider")];
+    const boxWidth = node => {
+      const style = getComputedStyle(node);
+      return node.getBoundingClientRect().width + (parseFloat(style.marginLeft) || 0) + (parseFloat(style.marginRight) || 0);
+    };
+    let gap = parseFloat(getComputedStyle(nav).columnGap);
+    if (!Number.isFinite(gap)) {
+      gap = fixed.length > 1 ? Math.max(0, fixed[1].getBoundingClientRect().left - fixed[0].getBoundingClientRect().right) : 0;
+    }
+    const fixedWidth = fixed.reduce((total, node) => total + boxWidth(node), 0);
+    const widths = buttons.map(boxWidth);
+    const prefix = [0];
+    for (const width of widths) prefix.push(prefix[prefix.length - 1] + width);
+    const fullWidth = fixedWidth + prefix[widths.length] + gap * Math.max(0, fixed.length + buttons.length - 1);
+    if (fullWidth <= available + 1) { markMoreActive(""); return; }
+    more.hidden = false;
+    const moreWidth = boxWidth(more);
+    let visible = buttons.length - 1;
+    while (visible > 0) {
+      const total = fixedWidth + moreWidth + prefix[visible] + gap * (fixed.length + visible);
+      if (total <= available + 1) break;
+      visible -= 1;
+    }
+    for (let index = visible; index < buttons.length; index += 1) menu.append(buttons[index]);
+    const overflow = buttons.slice(visible);
+    const activeLabel = overflow.some(button => button.dataset.category === state.category)
+      ? browseGroups.find(([id]) => id === state.category)?.[1] : "";
+    markMoreActive(activeLabel);
+  }
   function renderBrowseCategories() {
     const counts = new Map(browseGroups.map(([id]) => [id, 0]));
     for (const item of state.items) for (const id of browseOf(item)) counts.set(id, counts.get(id) + 1);
+    $("nav-more-menu").replaceChildren();
     $("browse-tabs").innerHTML = browseGroups.filter(([id]) => counts.get(id)).map(([id, label]) => {
       const active = state.category === id;
       return '<button type="button" data-category="' + id + '" aria-pressed="' + active +
         '" class="' + (active ? "active" : "") + '">' + label + ' <span>' + counts.get(id) + '</span></button>';
     }).join("");
+    layoutNavTabs();
   }
   function render() {
     const results = listFiltered();
@@ -170,7 +231,6 @@
     $("hero-count").textContent = state.items.length;
     $("count-skill").textContent = state.items.filter(x => x.kind === "skill").length;
     $("count-prompt").textContent = state.items.filter(x => x.kind === "prompt").length;
-    $("count-favorites").textContent = state.favorites.size;
     $("result-count").textContent = "共 " + results.length + " 个结果";
     document.querySelectorAll("#nav-tabs [data-type]").forEach(node => {
       const active = state.category === "all" && state.kind === node.dataset.type;
@@ -202,13 +262,10 @@
       const visibleTags = (item.tags || []).filter(tag => [...tag].reduce((s, c) => s + (c.charCodeAt(0) > 255 ? 2 : 1), 0) <= chipMax).slice(0, 2);
       const chips = '<span class="chip chip-kind">' + typeName(item) + "</span>" +
         visibleTags.map(tag => '<span class="chip">' + escapeHtml(tag) + "</span>").join("");
-      const fav = state.favorites.has(item.id);
       return '<article class="gallery-card" data-item-id="' + escapeHtml(item.id) + '" data-cover-index="0"><button class="gallery-card-open" type="button" data-open="' + escapeHtml(item.id) +
         '"><div class="image-wrap">' + image +
         '</div><div class="card-details"><h3>' + escapeHtml(item.title) + '</h3><p>' + escapeHtml(item.description) +
-        '</p></div></button>' + coverDots + '<div class="card-foot"><div class="chips">' + chips + '</div>' +
-        '<div class="card-actions"><button class="favorite-button ' + (fav ? "active" : "") + '" data-fav="' + escapeHtml(item.id) +
-        '" aria-label="' + (fav ? "取消收藏" : "收藏") + '">' + (fav ? "♥" : "♡") + '</button></div></div></article>';
+        '</p></div></button>' + coverDots + '<div class="card-foot"><div class="chips">' + chips + '</div></div></article>';
     }).join("");
     fitCardText();
   }
@@ -622,6 +679,19 @@
     } else {
       window.addEventListener("resize", refit);
     }
+    let lastTabsWidth = 0;
+    if (window.ResizeObserver) {
+      new ResizeObserver(entries => {
+        const width = Math.round(entries[0].contentRect.width);
+        if (width === lastTabsWidth) return;
+        lastTabsWidth = width;
+        scheduleTabsLayout();
+      }).observe($("nav-tabs"));
+    } else {
+      window.addEventListener("resize", scheduleTabsLayout);
+    }
+    window.addEventListener("resize", scheduleTabsLayout);
+    if (document.fonts?.ready) document.fonts.ready.then(scheduleTabsLayout);
     /* 调节滑块改的是 <html> 上的 CSS 变量 / data-layout，不会触发 resize，
        这里跟着重新截断一次，标题字号或列数变化后文字才不会硬裁。 */
     let refitTimer;
@@ -784,9 +854,21 @@
     $("manage-delete-cancel").addEventListener("click", cancelDelete);
     $("manage-delete-open").addEventListener("click", openDeleteIssue);
     $("nav-tabs").addEventListener("click", event => {
+      const category = event.target.closest("[data-category]");
+      if (category) {
+        state.kind = "all"; state.category = category.dataset.category; render();
+        return;
+      }
       const node = event.target.closest("[data-type]");
       if (!node) return;
       state.kind = node.dataset.type; state.category = "all"; render();
+    });
+    $("nav-more-toggle").addEventListener("click", event => {
+      event.stopPropagation();
+      setTabsMore($("nav-more-menu").hidden);
+    });
+    document.addEventListener("click", event => {
+      if (!$("nav-more").contains(event.target)) setTabsMore(false);
     });
     document.querySelectorAll(".view-switch").forEach(group => {
       group.addEventListener("click", event => {
@@ -795,11 +877,6 @@
         state.view = node.dataset.view;
         applyView(true);
       });
-    });
-    $("browse-tabs").addEventListener("click", event => {
-      const node = event.target.closest("[data-category]");
-      if (!node) return;
-      state.kind = "all"; state.category = node.dataset.category; render();
     });
     $("search").addEventListener("input", event => { state.search = event.target.value; render(); });
     $("sort").addEventListener("change", event => {
@@ -841,12 +918,6 @@
         });
         return;
       }
-      const fav = event.target.closest("[data-fav]");
-      if (fav) {
-        if (state.favorites.has(fav.dataset.fav)) state.favorites.delete(fav.dataset.fav);
-        else state.favorites.add(fav.dataset.fav);
-        saveFavorites(); render(); return;
-      }
       const open = event.target.closest("[data-open]");
       if (open) openItem(open.dataset.open);
     });
@@ -870,6 +941,7 @@
     $("download-file").addEventListener("click", download);
     window.addEventListener("keydown", event => {
       if (event.key === "Escape") {
+        if (!$("nav-more-menu").hidden) { setTabsMore(false, true); return; }
         if (!$("skill-manage-modal").hidden) { closeManage(); return; }
         if (!$("prompt-import-modal").hidden) { closePromptImport(); return; }
         if (!$("skill-import-modal").hidden) { closeSkillImport(); return; }
