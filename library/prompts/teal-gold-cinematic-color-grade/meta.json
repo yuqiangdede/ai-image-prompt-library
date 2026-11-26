@@ -1,0 +1,23 @@
+{
+  "title": "青绿藏金｜把日常光影调成电影里的颜色",
+  "description": "保留原图构图与自然光向，将环境蓝色转为灰青绿，受光面呈琥珀金色，模拟 Kodak VISION3 250D 高光响应，附原图与优化效果双封面。",
+  "category": "摄影后期 / 光影优化",
+  "tags": [
+    "优化类",
+    "摄影后期",
+    "电影调色",
+    "胶片质感",
+    "青绿",
+    "琥珀金",
+    "图生图",
+    "原图对照"
+  ],
+  "model": "ChatGPT",
+  "updated_at": "2026-11-26",
+  "cover": "images/cover.webp",
+  "images": [
+    "images/cover.webp",
+    "images/original.webp"
+  ],
+  "related_skills": []
+}
