@@ -1,0 +1,22 @@
+{
+  "title": "墨绿浮光｜把日常照片变成电影剧照",
+  "description": "保留原始照片构图与场景元素，运用墨绿、灰青绿与琥珀色电影调色、低调曝光和克制柔光，展示田野原图与优化图对照。",
+  "category": "摄影后期 / 光影优化",
+  "tags": [
+    "优化类",
+    "摄影后期",
+    "电影调色",
+    "墨绿",
+    "低调曝光",
+    "柔光",
+    "原图对照"
+  ],
+  "model": "ChatGPT",
+  "updated_at": "2026-11-26",
+  "cover": "images/cover.webp",
+  "images": [
+    "images/cover.webp",
+    "images/original.webp"
+  ],
+  "related_skills": []
+}
