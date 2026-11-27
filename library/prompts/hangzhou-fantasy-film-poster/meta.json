@@ -1,0 +1,23 @@
+{
+  "title": "杭州游 · 一梦千年｜东方玄幻双重曝光电影海报",
+  "description": "朱砂红与鎏金色东方玄幻电影海报，真人双重曝光、满月、金色锦鲤与云海古建筑交织。",
+  "category": "海报类",
+  "tags": [
+    "生图类",
+    "古风",
+    "玄幻",
+    "电影海报",
+    "双重曝光",
+    "汉服",
+    "东方美学",
+    "书法",
+    "杭州"
+  ],
+  "model": "GPT 图像生成",
+  "updated_at": "2026-11-28",
+  "cover": "images/cover.webp",
+  "images": [
+    "images/cover.webp"
+  ],
+  "related_skills": []
+}
